@@ -1479,12 +1479,7 @@ void powerScreen()
           digitalWrite(PIN_CONTA,LOW);
           myGLCD.print("OFF", 105, 83);            
           contacto = false;
-          myGLCD.setColor(0,0,0);           
-          myGLCD.fillCircle(150, 150, 50);
-
-          myGLCD.setColor(255,255,255); 
-          myGLCD.drawLine(100, 150, 200, 150);
-          myGLCD.drawLine(150, 100, 150, 200);          
+         
         }
         else
         {
@@ -1492,11 +1487,6 @@ void powerScreen()
           digitalWrite(PIN_CONTA,HIGH);
           myGLCD.print("ON ", 105, 83);            
           contacto = true;         
-          myGLCD.setColor(255,255,255); 
-          myGLCD.fillCircle(150, 150, 50);
-          myGLCD.setColor(0,0,0);           
-          myGLCD.drawLine(100, 150, 200, 150);
-          myGLCD.drawLine(150, 100, 150, 200);
         }
       }
       if ( ( x > 190 ) && ( x < 310 ) && ( y > 30) && ( y < 120 ) )
