@@ -1,8 +1,6 @@
 #include <UTFT.h>
 #include <UTouch.h>
 
-
-//#include <ITDB02_Touch.h>
 #include <Servo.h> 
 #include <UTFT_tinyFAT.h>
 #include <tinyFAT.h>
@@ -30,10 +28,12 @@
 #define PIN_RPM   18  
 
 //Pines del relay del burro de arranque y servo acelerador
-#define PIN_CONTA 57  //Analog input pin 3 
-#define PIN_CEBA  56  //Analog input pin 2
-#define PIN_BURRO 55  //Analog input pin 1
-#define PIN_SERVO 54  //Analog input pin 0
+
+#define PIN_SERVO 57  //Analog input pin 0  acelerador
+#define PIN_CEBA  56  //Analog input pin 2  cebador 
+#define PIN_BURRO 55  //Analog input pin 1  burro
+#define PIN_CONTA 54  //Analog input pin 3  contacto
+
 
 #define MAX_MSJ 17
 #define MSJ_SHOW 5
@@ -391,6 +391,7 @@ void setup()
   pinMode(PIN_SERVO, OUTPUT);
   pinMode(PIN_CEBA,  OUTPUT);  
   pinMode(PIN_BURRO, OUTPUT);
+  pinMode(PIN_CONTA, OUTPUT);
   agregarMensaje("Setup de pinouts");  
 
   pinMode(8,  INPUT);    //Deteccion de marcha   0
