@@ -168,6 +168,7 @@ prog_uint16_t barra_negra[0x78] PROGMEM ={
   0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,   // 0x0070 (112)
 };
 
+int debugstep = 0;
 
 void printRpm( int rpeme, int sentido)
 {  
@@ -327,14 +328,13 @@ void imprimirHora()
   myGLCD.setColor(255,255,255);
   myGLCD.setBackColor(0,0,0);
   valores = rtc.formatTime();
-
-
+  
   hora   = strtok( valores, ":");
   minuto = strtok( NULL, ":");  
   hora = hora + ":" + minuto;
 
   myGLCD.print(hora,x_hora,y_hora); 
-  //  myGLCD.print(rtc.formatDate(),160,220);    
+  
 }
 
 
@@ -348,6 +348,7 @@ void imprimirNafta()
 void menuPrincipal()
 {
   myGLCD.clrScr();
+  Serial3.println(debugstep++);   
   res =  myGLCD.loadBitmap(0,0,320,240,"principa.raw");
   if (res != 0)
   {
@@ -361,12 +362,11 @@ void menuPrincipal()
   imprimirNafta();
 }
 
-int debugstep = 0;
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("Inicializacion");  
+  Serial3.begin(9600);
+  Serial3.println("Inicializacion");  
   agregarMensaje("Inicializacion");  
   // Initial setup
   myGLCD.InitLCD(LANDSCAPE);
@@ -377,12 +377,11 @@ void setup()
 
   pinMode(PIN_RPM, INPUT);  //Velocimetro  (PIN 18 para el interrupt)
   digitalWrite(PIN_RPM,HIGH);// Internal pull up resistor(?)
-
+  Serial3.println(debugstep++);  
   myGLCD.setFont(BigFont);
 
   file.initFAT();
   agregarMensaje("Cargando preferencias...");  
-
   cargar();
 
   agregarMensaje("Pantalla de inicio");  
@@ -409,10 +408,11 @@ void setup()
 
   attachInterrupt(5, contar, RISING);  
   agregarMensaje("Solicitando password");  
+
   //  initLogin();
   menuPrincipal();
-
-  //  Serial.println("Fin Inicializacion");  
+ 
+  Serial3.println("Fin Inicializacion");  
 }
 
 
@@ -432,8 +432,8 @@ Estructura del archivo ARCHIVO (max 80):
 
     // Carga  los valores desde el archivo
     res=file.openFile(ARCHIVO, FILEMODE_TEXT_READ);
-    //    Serial.println("abrir archivo:");
-    //    Serial.print(res);
+    //    Serial3.println("abrir archivo:");
+    //    Serial3.print(res);
     if (res==NO_ERROR)
     {
 
@@ -441,50 +441,50 @@ Estructura del archivo ARCHIVO (max 80):
       if ((result!=EOF) and (result!=FILE_IS_EMPTY))
       {
         acelerado = atoi(textBuffer);           
-        //        Serial.print("Acelerado");
-        //        Serial.println(acelerado);
+        //        Serial3.print("Acelerado");
+        //        Serial3.println(acelerado);
       }              
       result=file.readLn(textBuffer, 80);              
       if ((result!=EOF) and (result!=FILE_IS_EMPTY))
       {
         desacelerado = atoi(textBuffer);                
-        //        Serial.print("Descelerado");
-        //        Serial.println(desacelerado);        
+        //        Serial3.print("Descelerado");
+        //        Serial3.println(desacelerado);        
       }    
       result=file.readLn(textBuffer, 80);              
       if ((result!=EOF) and (result!=FILE_IS_EMPTY))
       {
         cuanto = atoi(textBuffer);                
-        //        Serial.print("Cuanto");
-        //       Serial.println(cuanto);        
+        //        Serial3.print("Cuanto");
+        //       Serial3.println(cuanto);        
       }                            
       file.closeFile();
     }
   }  
   else
   {
-    //    Serial.print("No existe el archivo: ");
-    //  Serial.println(ARCHIVO);
+    //    Serial3.print("No existe el archivo: ");
+    //  Serial3.println(ARCHIVO);
   }
   if ( file.exists(ODOMETRO) )
   {
     res = file.openFile(ODOMETRO, FILEMODE_TEXT_READ);
-    //    Serial.println("Abriendo archivo odometro");
-    //    Serial.print(res);
+    //    Serial3.println("Abriendo archivo odometro");
+    //    Serial3.print(res);
     if (res == NO_ERROR)
     {
       result = file.readLn(textBuffer, 80);
-      /*      Serial.print("result: ");
-       Serial.println(result);
-       Serial.print("EMPTY: ");
-       Serial.println(FILE_IS_EMPTY);*/
+      /*      Serial3.print("result: ");
+       Serial3.println(result);
+       Serial3.print("EMPTY: ");
+       Serial3.println(FILE_IS_EMPTY);*/
       if ((result!=EOF) and (result!=FILE_IS_EMPTY))
       {
-        //        Serial.print("Se leyo del odometro:");
-        //        Serial.println(textBuffer);
+        //        Serial3.print("Se leyo del odometro:");
+        //        Serial3.println(textBuffer);
         m_totales = atof(textBuffer);                
-        //        Serial.print("m_totales:");
-        //        Serial.println(m_totales);       
+        //        Serial3.print("m_totales:");
+        //        Serial3.println(m_totales);       
       }
       file.closeFile();
     }
@@ -535,40 +535,61 @@ Protocolo de comunicacion:
   int incomingByte = 0;
   char letra;
   String palabra = "";
-  if ( Serial.available() >= 5)  //<--- fijoo!
+  if ( Serial3.available() >= 5)  //<--- fijoo!
   {
     for(int i = 0; i < 5; i++)
     {
-      letra = Serial.read();
+      letra = Serial3.read();
       palabra.concat(letra);
     }
-    Serial.print("Palabra tiene: ");
-    Serial.println(palabra);
+    Serial3.print("Palabra tiene: ");
+    Serial3.println(palabra);
     if ( palabra == "HELLO")
     {
       conectado = 1;
-      Serial.println("HOLA");
+      Serial3.println("HOLA");
     }
     if (conectado != 0 )
     {
       if ( palabra == "KMTOT")
       {
-        Serial.println(m_totales);        
+        Serial3.println(m_totales);        
       }
       else if ( palabra == "START" ) 
       {
         if ( donde != LC_PRINCIPAL )
-          Serial.println("No se permite arrancar desde un submenu");
+          Serial3.println("No se permite arrancar desde un submenu");
         else
           Arrancar();
       }
+      else if ( palabra == "CONTA")
+            {
+                digitalWrite(PIN_CONTA,LOW);
+                Serial3.println("En contacto");
+            }
+      else if ( palabra == "PANON" )
+      {
+        myGLCD.lcdOn();
+        Serial3.println("Pantalla encendida");
+      }
+      else if ( palabra == "PANOF" )
+      {
+        myGLCD.lcdOff();
+        Serial3.println("Pantalla apagada");        
+      }
+      else if ( palabra == "LOCKS" )
+      {
+        Serial3.println("Bloqueando pantalla");        
+        initLogin();
+        Serial3.println("Desbloqueado");        
+      }            
     }
     else
-      Serial.println("No se ha iniciado la sesion");   
+      Serial3.println("No se ha iniciado la sesion");   
     if ( palabra == "GOODB")
     {
       conectado = 0;
-      Serial.println("CHAU");     
+      Serial3.println("CHAU");     
     }
   }
 }
@@ -583,7 +604,7 @@ void loop()
     hora_refresh = millis();
     printMessages();
   }
-  /* Rutina de escucha del Serial*/
+  /* Rutina de escucha del Serial3*/
   escuchar( 0 ); //0 = llamado desde el lo op principal
 
   if (myTouch.dataAvailable())
@@ -667,11 +688,11 @@ void ponerEnHora()
 
   valores = rtc.formatTime();
   hora   = atoi ( strtok( valores, ":") );
-  //  Serial.print("Hora");
-  //  Serial.println(hora);
+  //  Serial3.print("Hora");
+  //  Serial3.println(hora);
   minuto = atoi ( strtok( NULL, ":") );
-  //  Serial.print("Minuto");
-  //  Serial.println(minuto);
+  //  Serial3.print("Minuto");
+  //  Serial3.println(minuto);
 
   while(!salir)
   {
@@ -747,17 +768,17 @@ boolean guardarOdometro()
 {
   if ( file.exists(ODOMETRO)   )
   {
-    Serial.println("Existe archivo odometro");
+    Serial3.println("Existe archivo odometro");
     res = file.delFile(ODOMETRO);
 
     if (res)
     {
-      Serial.println("Se borra el archivo odometro");
+      Serial3.println("Se borra el archivo odometro");
       agregarMensaje("Borrado archivo ODOMETRO");
     } 
     else
     {
-      Serial.println("NO se borra el archivo odometro");
+      Serial3.println("NO se borra el archivo odometro");
       agregarMensaje("No se borra archivo ODOMETRO");
       return false;
     }
@@ -765,13 +786,13 @@ boolean guardarOdometro()
 
   if (file.create(ODOMETRO))
   {
-    Serial.println("se crea archivo odometro");
+    Serial3.println("se crea archivo odometro");
     res=file.openFile(ODOMETRO, FILEMODE_TEXT_WRITE);
   }
   else
   {
-    Serial.print("Error al crear el archivo: ");
-    Serial.println(res);
+    Serial3.print("Error al crear el archivo: ");
+    Serial3.println(res);
     agregarMensaje("Error creando ODOMETRO");
     return false;
   }
@@ -780,18 +801,18 @@ boolean guardarOdometro()
   {
     word result=0;
     ftoa(textBuffer,m_totales,3);
-    Serial.print("Intento guardar:");
-    Serial.println(textBuffer);
+    Serial3.print("Intento guardar:");
+    Serial3.println(textBuffer);
     result=file.writeLn(textBuffer);
 
     if (result == NO_ERROR)
     {
-      Serial.println("Se guardo el valor del odometro");
+      Serial3.println("Se guardo el valor del odometro");
       agregarMensaje("Odometro guardado.");
     }
     else
     {
-      Serial.println("NO se guardo el valor del odometro");
+      Serial3.println("NO se guardo el valor del odometro");
       agregarMensaje("Error al guardar odometro");
       return false;
     }
@@ -803,7 +824,7 @@ boolean guardarOdometro()
   }
   else
   {
-    Serial.println("No se crea el archivo, sale");
+    Serial3.println("No se crea el archivo, sale");
     return false;
 
   }
@@ -889,7 +910,7 @@ void viajar()
   }
 
   //Save values into file before leaving screen
-  Serial.println("intento de guardar datos...");
+  Serial3.println("intento de guardar datos...");
   guardarOdometro();
   myTouch.read();  
   menuPrincipal();
@@ -898,34 +919,34 @@ void viajar()
 void Arrancar()
 {
 
-  Serial.println("Comienza el arranque del motor...");
+  Serial3.println("Comienza el arranque del motor...");
   agregarMensaje("Secuencia de arranque");   
   myAcelerador.attach(PIN_SERVO); // attaches the servo on pin to the servo object 
   myCebador.attach(PIN_CEBA);     // attaches the servo on pin to the servo object   
   myAcelerador.write(0);          // desacelerado  
   myCebador.write(0);             // sin cebador    
   delay(300);
-  Serial.println("Aplicando cebador...");
+  Serial3.println("Aplicando cebador...");
   agregarMensaje("Cebando el motor...");   
   myCebador.write(300);
-  Serial.println("Acelerando el motor...");
+  Serial3.println("Acelerando el motor...");
   agregarMensaje("Acelerando...");   
   myAcelerador.write(90);                         //Acelero
   delay(300);                                //espero al servo
-  Serial.println("Girando burro!");
+  Serial3.println("Girando burro!");
   agregarMensaje("Girando burro!");   
   digitalWrite(PIN_BURRO,HIGH);              //Doy contacto al burro
   delay(1000);                               //Espero 1 segundo que arranque
   digitalWrite(PIN_BURRO,LOW);               //Corto el burro
-  Serial.println("Burro frenado");
+  Serial3.println("Burro frenado");
   agregarMensaje("Burro detenido");   
-  Serial.println("Soltando cebador");
+  Serial3.println("Soltando cebador");
   delay(1000);                               //Espero 1 segundo
   agregarMensaje("Quitando cebador");     
   myCebador.write(0);                        // y saco el cebador
   agregarMensaje("Liberando servo cebador");     
   myCebador.detach();
-  Serial.println("Secuencia de arranque finalizada, pasando a calentar...");
+  Serial3.println("Secuencia de arranque finalizada, pasando a calentar...");
   agregarMensaje("Pasando a calentar");     
   Calentar();
 }
@@ -941,12 +962,12 @@ boolean guardarCalentar()
     interrupts();
     if (res)
     {
-      Serial.println("Se borra el archivo odometro");
+      Serial3.println("Se borra el archivo odometro");
       agregarMensaje("File erased");     
     }
     else
     {
-      Serial.println("NO se borra el archivo odometro");
+      Serial3.println("NO se borra el archivo odometro");
       agregarMensaje("Error deleting ARCHIVO");     
       return false;
     }
@@ -958,9 +979,9 @@ boolean guardarCalentar()
   }
   else
   {
-    Serial.print("Error al crear el archivo: ");
+    Serial3.print("Error al crear el archivo: ");
     agregarMensaje("Error creating ARCHIVO");     
-    Serial.println(res);
+    Serial3.println(res);
     return false;
   }
   interrupts();
@@ -985,13 +1006,13 @@ boolean guardarCalentar()
     interrupts();
     if (result == NO_ERROR)
     {
-      Serial.println("Se guardo el valor del odometro");
+      Serial3.println("Se guardo el valor del odometro");
       agregarMensaje("Presets saved");
       return true;
     }
     else
     {
-      Serial.println("NO se guardo el valor del odometro");
+      Serial3.println("NO se guardo el valor del odometro");
       agregarMensaje("Error saving presets");
       return false;
     }
@@ -1323,8 +1344,8 @@ void initLogin()
             myGLCD.fillRect(0, 208, 319, 239);
             myGLCD.setColor(0, 255, 0);
             myGLCD.print(stLast, LEFT, 208);
-            Serial.print("El codigo ingresado es:");
-            Serial.println(stLast);
+            Serial3.print("El codigo ingresado es:");
+            Serial3.println(stLast);
 
             if (stLast[0] == '1'  &&  stLast[1] == '8'  &&  stLast[2] == '0'  &&   stLast[3] == '9' )
             {
