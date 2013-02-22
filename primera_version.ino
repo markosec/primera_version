@@ -138,7 +138,30 @@ void printKmh( int velocidad )
 
 }
 
-
+char *verboseError(byte err)
+{
+  switch (err)
+  {
+  case ERROR_MBR_READ_ERROR:
+    return "Error reading MBR";
+    break;
+  case ERROR_MBR_SIGNATURE:
+    return "MBR Signature error";
+    break;
+  case ERROR_MBR_INVALID_FS:
+    return "Unsupported filesystem";
+    break;
+  case ERROR_BOOTSEC_READ_ERROR:
+    return "Error reading Boot Sector";
+    break;
+  case ERROR_BOOTSEC_SIGNATURE:
+    return "Boot Sector Signature error";
+    break;
+  default:
+    return "Unknown error";
+    break;
+  }
+}
 // Generated from: barra verde.png
 // Time generated: 06/02/2013 11:28:51 a.m.
 // Dimensions : 17x20 pixels
@@ -294,6 +317,7 @@ void agregarMensaje( String m )
   //split message if too large...
   for ( int p = 1; p <= longitud ; p++)
   {
+    l_aux = "";
     l_aux = m.substring(idx, (idx + MAX_MSJ));
     idx = idx + MAX_MSJ;
     t_mensajes[++idx_mensajes] = l_aux;
@@ -305,11 +329,13 @@ void agregarMensaje( String m )
     {
       l_aux = t_mensajes[idx_mensajes - n];
       t_aux[MSJ_SHOW - n] = l_aux;
+      l_aux = "";
     }
     idx_mensajes = MSJ_SHOW;
 
     for ( int p = 0; p <= MSJ_SHOW; p++)
     {
+      t_mensajes[p] = "";
       t_mensajes[p] = t_aux[p];
     }
   }
@@ -338,14 +364,15 @@ void printMessages()
 
 void imprimirHora()
 {
-  char *valores;
   String hora = "";
-  String minuto = "";
-
-  myGLCD.setFont(BigFont);
-  myGLCD.setColor(255,255,255);
-  myGLCD.setBackColor(0,0,0);
-  /*  
+  /* char *valores;
+   
+   String minuto = "";
+   
+   myGLCD.setFont(BigFont);
+   myGLCD.setColor(255,255,255);
+   myGLCD.setBackColor(0,0,0);
+   
    valores = rtc.formatTime();
    hora = strtok( valores, ":");
    minuto = strtok( NULL, ":");
@@ -354,19 +381,12 @@ void imprimirHora()
 
   unsigned long t = millis();
 
-  static char str[12];
   long r;
   long h = t / 3600000 ; // divide by millisecs per hour => hrs
-  Serial.print("H:");
-  Serial.println(h);
   r = t % 3600000;
   int m = r / 60000; // divide rest by millisecs per minute => mins
-  Serial.print("M:");
-  Serial.println(m);
   r = r % 60000;
   int s = r / 1000; // divide rest by millisecs per second => secs
-  Serial.print("S:");
-  Serial.println(s);
 
   if ( m < 10 )
     hora = hora + "0" + m;
@@ -377,7 +397,7 @@ void imprimirHora()
     hora = hora + "0" + s;
   else
     hora = hora + s;     
-
+  myGLCD.setFont(BigFont);
   myGLCD.print(hora,x_hora,y_hora);
 
 }
@@ -395,17 +415,19 @@ void menuPrincipal()
 {
   myGLCD.clrScr();
 
-  res = myGLCD.loadBitmap(0,0,320,240,"principa.raw");
+
+  res = myGLCD.loadBitmap(0,0,320,240,"Principa.raw");
 
   if (res != 0)
   {
-    myGLCD.print("error principa.raw",0,0);
+    myGLCD.print("error Principa.raw",0,0);
     myGLCD.printNumI(res,0,80);
-    agregarMensaje("Error loading principa.raw");
+    agregarMensaje("Error loading Principa.raw");
   }
+  printMessages();
 
-  imprimirHora();
-  imprimirNafta();
+  //  imprimirHora();
+  //  imprimirNafta();
 }
 
 
@@ -417,22 +439,20 @@ void setup()
   Serial.println(F("Inicializacion"));
   agregarMensaje("Inicializacion");
   // Initial setup
+
   myGLCD.InitLCD(LANDSCAPE);
+
   myGLCD.clrScr();
 
   myTouch.InitTouch(LANDSCAPE);
+
   myTouch.setPrecision(PREC_HI);
+
 
   pinMode(PIN_RPM, INPUT); //Velocimetro (PIN 18 para el interrupt)
   digitalWrite(PIN_RPM,HIGH);// Internal pull up resistor(?)
-  myGLCD.setFont(BigFont);
 
-  file.initFAT();
-  agregarMensaje("Cargando preferencias...");
-  cargar();
-
-
-  agregarMensaje("Pantalla de inicio");
+  delay(100);
 
   //Inicializacion Servo
   pinMode(PIN_SERVO, OUTPUT);
@@ -456,21 +476,31 @@ void setup()
 
   pinMode(PIN_NAFTA, INPUT);  
 
-
   attachInterrupt(5, contar, RISING);
+
+  res = file.initFAT();
+  delay(100);  
+  if ( res == NO_ERROR )
+    agregarMensaje("SD iniciada");
+  else 
+  {
+    agregarMensaje(verboseError(res));  
+    Serial.println(verboseError(res));
+  }
+  menuPrincipal();
+  agregarMensaje("Cargando preferencias...");
+  cargar();
+
   //  agregarMensaje("Solicitando password");
   // initLogin();
 
-  menuPrincipal();
-
-
-  //*****************
   timer.setInterval(1000, imprimirHora);
   timer.setInterval(2000,callEscuchar);
-  //*****************
+  timer.setInterval(30000, imprimirNafta);  
 
   agregarMensaje("Fin inicializacion");
   Serial.println(F("Fin Inicializacion"));
+
 }
 
 
@@ -562,6 +592,7 @@ void printWelcome()
   Serial.println(F("HOLA"));
   Serial.println(F("Secuencia de comandos disponibles:"));
   Serial.println(F("KMTOT --> Kilometros totales, enteros y decimales por separado"));
+  Serial.println(F("KMSET --> Para setear kilometros totales, enteros y decimales por separado"));
   Serial.println(F("START --> Arranque de la moto"));
   Serial.println(F("CONTA --> Pone en contacto la moto"));
   Serial.println(F("LOCKS --> Pide password al usuario"));
@@ -658,6 +689,35 @@ Protocolo de comunicacion:
         Serial.println(F("Ingresando en power screen"));
         powerScreen(); 
       }
+      else if ( palabra == "KMSET")
+      {
+        palabra = "";
+        Serial.println("Ingrese la parte decimal: 0.000");
+        while ( Serial.available() < 5 ); //wait
+        for(int i = 0; i < 5; i++)  
+        {
+          letra = Serial.read();
+          palabra.concat(letra);
+        }
+        char str[10];
+        palabra.toCharArray(str,10);
+        m_totales_f = atof(str);
+        Serial.print("Km totales f seteado en :");
+        Serial.println(m_totales_f);
+        palabra = "";
+        Serial.println("Ingrese la parte entera: 12345");       
+        while ( Serial.available() < 5 ); //wait        
+        for(int i = 0; i < 5; i++)  
+        {
+          letra = Serial.read();
+          palabra.concat(letra);
+        }        
+        char str_aux[10];
+        palabra.toCharArray(str_aux,10);
+        m_totales_i = atoi(str_aux);
+        Serial.print("Km totales i seteado en :");
+        Serial.println(m_totales_i);
+      }
     }
     else
       Serial.println(F("No se ha iniciado la sesion"));
@@ -674,8 +734,6 @@ void loop()
 {
 
   timer.run();
-
-  /* Rutina de escucha del Serial*/
 
   if (myTouch.dataAvailable())
   {
@@ -841,6 +899,9 @@ void ponerEnHora()
 }
 
 
+
+
+
 boolean guardarOdometro()
 {
   if ( m_totales_i == 0)
@@ -863,6 +924,7 @@ boolean guardarOdometro()
     }
   }
 
+  delay(100);
   if (file.create(ODOMETRO))
   {
     res=file.openFile(ODOMETRO, FILEMODE_TEXT_WRITE);
@@ -904,6 +966,8 @@ boolean guardarOdometro()
     return false;
   }
 }
+
+
 
 void callEscuchar()
 {
@@ -967,8 +1031,13 @@ void viajar()
   }
 
   //Save values into file before leaving screen
+  Serial.println("pasa1");  
   guardarOdometro();
+  Serial.println("pasa2");
+  delay(100);
+  Serial.println("pasa3");  
   myTouch.read();
+  Serial.println("pasa4");
   menuPrincipal();
 }
 
@@ -1229,7 +1298,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000                                     };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000                                           };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -1555,6 +1624,7 @@ void powerScreen()
         {
           waitForIt();
           digitalWrite(PIN_CONTA,LOW);
+          myGLCD.setFont(SmallFont);          
           myGLCD.print("OFF", 105, 83);
           contacto = false;
 
@@ -1563,6 +1633,7 @@ void powerScreen()
         {
           waitForIt();
           digitalWrite(PIN_CONTA,HIGH);
+          myGLCD.setFont(SmallFont);          
           myGLCD.print("ON ", 105, 83);
           contacto = true;
         }
@@ -1582,3 +1653,6 @@ void powerScreen()
 
   menuPrincipal();
 }
+
+
+
