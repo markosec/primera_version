@@ -329,17 +329,17 @@ void agregarMensaje( String m )
     {
       l_aux = t_mensajes[idx_mensajes - n];
       t_aux[MSJ_SHOW - n] = l_aux;
-      l_aux = "";
     }
     idx_mensajes = MSJ_SHOW;
 
     for ( int p = 0; p <= MSJ_SHOW; p++)
     {
-      t_mensajes[p] = "";
       t_mensajes[p] = t_aux[p];
     }
   }
   printMessages();
+//  Serial.print("Salgo de printmessages() por :");
+//  Serial.println(m);
 }
 
 
@@ -349,14 +349,34 @@ void agregarMensaje( String m )
 
 void printMessages()
 {
+  int i = 0;
+  String aux = "";
   // Print messages table each line on it's own inside(maybe) the info-box
   myGLCD.setFont(SmallFont);
   myGLCD.setColor(255,255,255);
   myGLCD.setBackColor(0,0,0);
-  for ( int i = 0; i<= MSJ_SHOW; i++) //Print up to MSJ_SHOW messages
+  for ( i = 0; i<= MSJ_SHOW; i++) //Print up to MSJ_SHOW messages
   {
-    myGLCD.print(t_mensajes[i],x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)
+    aux = t_mensajes[i];
+    while(1)
+    {
+      aux.concat(" ");
+      if ( aux.length() >= MAX_MSJ )
+        break;
+    }
+    //    myGLCD.print(t_mensajes[i],x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)
+    myGLCD.print(aux,x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)    
   }
+  if ( i != MSJ_SHOW)
+  {
+    aux = "";
+    for ( int j ; j <= MAX_MSJ ; j++)
+      aux.concat(" "); //Fill a blank line of MAX_MSJ length
+      
+    for (  i ; i<= MSJ_SHOW; i++) //Print up to MSJ_SHOW blank lines
+         myGLCD.print(aux,x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)    
+    }
+
 }
 
 #define x_hora 195
@@ -398,6 +418,7 @@ void imprimirHora()
   else
     hora = hora + s;     
   myGLCD.setFont(BigFont);
+  myGLCD.setColor(255,255,255);
   myGLCD.print(hora,x_hora,y_hora);
 
 }
@@ -425,9 +446,6 @@ void menuPrincipal()
     agregarMensaje("Error loading Principa.raw");
   }
   printMessages();
-
-  //  imprimirHora();
-  //  imprimirNafta();
 }
 
 
@@ -435,7 +453,7 @@ void menuPrincipal()
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println(F("Inicializacion"));
   agregarMensaje("Inicializacion");
   // Initial setup
@@ -645,12 +663,14 @@ Protocolo de comunicacion:
       letra = Serial.read();
       palabra.concat(letra);
     }
-    Serial.print(F("Palabra tiene: "));
-    Serial.println(palabra);
+//    Serial.print(F("Palabra tiene: "));
+ //   Serial.println(palabra);
     if ( palabra == "HELLO")
     {
       conectado = 1;
+      palabra = "";
       printWelcome();
+      return;
     }
     if (conectado != 0 )
     {
@@ -729,7 +749,6 @@ Protocolo de comunicacion:
   }
 }
 
-long hora_refresh = 0;
 void loop()
 {
 
@@ -737,6 +756,7 @@ void loop()
 
   if (myTouch.dataAvailable())
   {
+    
     myTouch.read();
     x=myTouch.getX();
     y=myTouch.getY();
@@ -751,8 +771,9 @@ void loop()
       else if ( ( y > 90 ) && ( y < 150 ) ) //opcion viajar
       {
         waitForIt();
-        agregarMensaje("Ingreso en viajar");
         viajar();
+//        Serial.println("Sale de viajar");        
+        menuPrincipal();
       }
       else if ( ( y > 190 ) ) //opcion Calentar
       {
@@ -912,7 +933,6 @@ boolean guardarOdometro()
   if ( file.exists(ODOMETRO) )
   {
     res = file.delFile(ODOMETRO);
-
     if (res)
     {
       agregarMensaje("Borrado archivo ODOMETRO");
@@ -978,6 +998,7 @@ void viajar()
   int sentido = 1;
   int kmh_aux = 0;
 
+
   myGLCD.clrScr();
   res = myGLCD.loadBitmap(0,0,320,240,"viajar2.raw");
   if (res != 0)
@@ -999,6 +1020,7 @@ void viajar()
    */
 
   imprimirNafta();
+
   printMessages();
 
   while( !myTouch.dataAvailable())
@@ -1023,22 +1045,21 @@ void viajar()
 
       }
       ////////////////////////////////////////////////////////////////
+
       printKmh(KMH);
+
       printKmTotales();
+
       // printMarcha();
       antes = millis();
     }
   }
 
   //Save values into file before leaving screen
-  Serial.println("pasa1");  
+
   guardarOdometro();
-  Serial.println("pasa2");
-  delay(100);
-  Serial.println("pasa3");  
-  myTouch.read();
-  Serial.println("pasa4");
-  menuPrincipal();
+  //  myTouch.read();
+
 }
 
 
@@ -1298,7 +1319,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000                                           };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000                                             };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -1472,9 +1493,8 @@ void initLogin()
               repetir_login = false;
               myGLCD.setColor(255, 0, 0);
               myGLCD.print("Correcto!", CENTER, 192);
-              Serial.println("ANtes del mensaje de correcto");              
-              //              agregarMensaje("Succesful login!");
-              Serial.println("Despeus del mensaje de error");
+              agregarMensaje("Succesful login!");
+
             }
             else
             {
@@ -1487,9 +1507,7 @@ void initLogin()
               delay(500);
               myGLCD.print(" ", CENTER, 192);
               myGLCD.setColor(0, 255, 0);
-              Serial.println("ANtes del mensaje de error");
-              //            agregarMensaje("Wrong code entered");
-              Serial.println("despues del mensaje de error");              
+              agregarMensaje("Wrong code entered");
             }
           }
           else
@@ -1653,6 +1671,5 @@ void powerScreen()
 
   menuPrincipal();
 }
-
 
 
