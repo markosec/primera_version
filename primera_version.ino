@@ -6,10 +6,7 @@
 #include <tinyFAT.h>
 #include <avr/pgmspace.h>
 #include <Wire.h>
-
-//#include <Rtc_Pcf8563.h>
-
-//until RTC comes back to life...
+#include <Rtc_Pcf8563.h>
 #include <SimpleTimer.h>
 
 
@@ -39,7 +36,7 @@
 #define PIN_CEBA 56 //Analog input pin 2 cebador
 #define PIN_BURRO 55 //Analog input pin 1 burro
 #define PIN_CONTA 54 //Analog input pin 3 contacto
-#define PIN_NAFTA A7  //Analog input pin 7 sensor de nafta
+#define PIN_NAFTA A7 //Analog input pin 7 sensor de nafta
 
 
 #define MAX_MSJ 17
@@ -58,7 +55,7 @@ Servo myAcelerador; // Servo acelerador
 Servo myCebador; // Servo acelerador
 
 //init the real time clock
-//Rtc_Pcf8563 rtc;
+Rtc_Pcf8563 rtc;
 SimpleTimer timer;
 
 
@@ -70,8 +67,8 @@ int RPM = 0;
 int NAFTA = 100;
 int TEMP = 888;
 
-volatile long  m_totales_f = 0;
-volatile long  m_totales_i = 0;
+volatile long m_totales_f = 0;
+volatile long m_totales_i = 0;
 
 int acelerado = 750;
 int desacelerado = 1000;
@@ -94,11 +91,11 @@ void printKmTotales()
 
   aux_str = String(m_totales_f);
   if (aux_str.length() > 2)
-     aux_str = aux_str.substring(0,2);  
+    aux_str = aux_str.substring(0,2);
 
-  myGLCD.print(aux_str,        250,110);
-  myGLCD.print(".",            237,110);
-  myGLCD.printNumI(m_totales_i,160,110,5,'0');  
+  myGLCD.print(aux_str, 250,110);
+  myGLCD.print(".", 237,110);
+  myGLCD.printNumI(m_totales_i,160,110,5,'0');
 
 }
 
@@ -318,14 +315,14 @@ void agregarMensaje( String m )
     longitud++;
   //split message if too large...
   /*
-  for ( int p = 1; p <= longitud ; p++)
-  {
-    l_aux = "";
-    l_aux = m.substring(idx, (idx + MAX_MSJ));
-    idx = idx + MAX_MSJ;
-    t_mensajes[++idx_mensajes] = l_aux;
-  }
-  */
+for ( int p = 1; p <= longitud ; p++)
+   {
+   l_aux = "";
+   l_aux = m.substring(idx, (idx + MAX_MSJ));
+   idx = idx + MAX_MSJ;
+   t_mensajes[++idx_mensajes] = l_aux;
+   }
+   */
   alto = false;
   for ( int p = 1; !alto ; p++)
   {
@@ -333,8 +330,8 @@ void agregarMensaje( String m )
     idx = idx + MAX_MSJ;
     t_mensajes[++idx_mensajes] = l_aux;
     if ( idx > m.length() )
-       alto = true;
-  }  
+      alto = true;
+  }
   if (idx_mensajes >= MSJ_SHOW)
   {
     //Displace messages up (or down?)
@@ -375,8 +372,8 @@ void printMessages()
       if ( aux.length() >= MAX_MSJ )
         break;
     }
-    //    myGLCD.print(t_mensajes[i],x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)
-    myGLCD.print(aux,x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)    
+    // myGLCD.print(t_mensajes[i],x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)
+    myGLCD.print(aux,x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)
   }
   if ( i != MSJ_SHOW)
   {
@@ -384,8 +381,8 @@ void printMessages()
     for ( int j ; j <= MAX_MSJ ; j++)
       aux.concat(" "); //Fill a blank line of MAX_MSJ length
 
-    for (  i ; i<= MSJ_SHOW; i++) //Print up to MSJ_SHOW blank lines
-      myGLCD.print(aux,x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)    
+    for ( i ; i<= MSJ_SHOW; i++) //Print up to MSJ_SHOW blank lines
+      myGLCD.print(aux,x_msj,(y_msj + (i * 13))); //Advance each Y coordinate by the amount of font height (8?)
   }
 
 }
@@ -396,38 +393,36 @@ void printMessages()
 void imprimirHora()
 {
   String hora = "";
-  /* char *valores;
-   
-   String minuto = "";
-   
-   myGLCD.setFont(BigFont);
-   myGLCD.setColor(255,255,255);
-   myGLCD.setBackColor(0,0,0);
-   
-   valores = rtc.formatTime();
-   hora = strtok( valores, ":");
-   minuto = strtok( NULL, ":");
-   hora = hora + ":" + minuto;
-   */
+  char *valores;
+  String minuto = "";
+  myGLCD.setFont(BigFont);
+  myGLCD.setColor(255,255,255);
+  myGLCD.setBackColor(0,0,0);
+  valores = rtc.formatTime();
+  hora = strtok( valores, ":");
+  minuto = strtok( NULL, ":");
+  hora = hora + ":" + minuto;
 
+  /*
   unsigned long t = millis();
-
-  long r;
-  long h = t / 3600000 ; // divide by millisecs per hour => hrs
-  r = t % 3600000;
-  int m = r / 60000; // divide rest by millisecs per minute => mins
-  r = r % 60000;
-  int s = r / 1000; // divide rest by millisecs per second => secs
-
-  if ( m < 10 )
-    hora = hora + "0" + m;
-  else
-    hora = hora + m;     
-  hora = hora + ":";     
-  if ( s < 10 )
-    hora = hora + "0" + s;
-  else
-    hora = hora + s;     
+   
+   long r;
+   long h = t / 3600000 ; // divide by millisecs per hour => hrs
+   r = t % 3600000;
+   int m = r / 60000; // divide rest by millisecs per minute => mins
+   r = r % 60000;
+   int s = r / 1000; // divide rest by millisecs per second => secs
+   
+   if ( m < 10 )
+   hora = hora + "0" + m;
+   else
+   hora = hora + m;
+   hora = hora + ":";
+   if ( s < 10 )
+   hora = hora + "0" + s;
+   else
+   hora = hora + s;
+   */
   myGLCD.setFont(BigFont);
   myGLCD.setColor(255,255,255);
   myGLCD.print(hora,x_hora,y_hora);
@@ -437,17 +432,17 @@ void imprimirHora()
 void imprimirNafta()
 {
   long gas = 0;
-  
+
   myGLCD.setFont(SmallFont);
   gas = analogRead(PIN_NAFTA);
-  if ( gas < 70 )                //Tanque lleno.. o casi
-     myGLCD.setColor(0,255,0);
-  else if ( gas > 440 )          // Tanque vacio.. o casi
-          myGLCD.setColor(255,0,0);
-       else
-          myGLCD.setColor(255,255,255);     //Normal
-          
-          
+  if ( gas < 70 ) //Tanque lleno.. o casi
+    myGLCD.setColor(0,255,0);
+  else if ( gas > 440 ) // Tanque vacio.. o casi
+    myGLCD.setColor(255,0,0);
+  else
+    myGLCD.setColor(255,255,255); //Normal
+
+
   myGLCD.printNumI(gas,280,90,4,'0');
 }
 
@@ -466,9 +461,6 @@ void menuPrincipal()
   }
   printMessages();
 }
-
-
-
 
 void setup()
 {
@@ -496,7 +488,7 @@ void setup()
   pinMode(PIN_CEBA, OUTPUT);
   pinMode(PIN_BURRO, OUTPUT);
   pinMode(PIN_CONTA, OUTPUT);
-  
+
   pinMode(8, INPUT); //Deteccion de marcha 0
   digitalWrite(8, HIGH); //Pull up resistor
   pinMode(9, INPUT); //Deteccion de marcha 1
@@ -510,30 +502,30 @@ void setup()
   pinMode(13, INPUT); //Deteccion de marcha 5
   digitalWrite(13, HIGH);//Pull up resistor
 
-  pinMode(PIN_NAFTA, INPUT);  
+  pinMode(PIN_NAFTA, INPUT);
 
   attachInterrupt(5, contar, RISING);
 
   agregarMensaje("Iniciando SD...");
   res = file.initFAT(SPISPEED_HIGH);
-  delay(100);  
+  delay(100);
   if ( res == NO_ERROR )
     agregarMensaje("SD iniciada");
-  else 
+  else
   {
-    agregarMensaje(verboseError(res));  
+    agregarMensaje(verboseError(res));
     Serial.println(verboseError(res));
   }
   menuPrincipal();
   agregarMensaje("Cargando preferencias...");
   cargar();
 
-  //  agregarMensaje("Solicitando password");
+  // agregarMensaje("Solicitando password");
   // initLogin();
 
-  timer.setInterval(1000,  imprimirHora);
-  timer.setInterval(2000,  callEscuchar);
-  timer.setInterval(10000, imprimirNafta);  
+  timer.setInterval(1000, imprimirHora);
+  timer.setInterval(2000, callEscuchar);
+  timer.setInterval(10000, imprimirNafta);
 
   agregarMensaje("Fin inicializacion");
   Serial.println(F("Fin Inicializacion"));
@@ -594,16 +586,16 @@ Estructura del archivo ARCHIVO (max 80):
         Serial.print(F("m_totales_f: "));
         Serial.println(textBuffer);
 
-        result = file.readLn(textBuffer, 80);        
-        if ( (result!=FILE_IS_EMPTY)  or  (result == EOF))
-        {      
+        result = file.readLn(textBuffer, 80);
+        if ( (result!=FILE_IS_EMPTY) or (result == EOF))
+        {
           Serial.print(F("lei del odometro2:"));
-          Serial.println(textBuffer);          
+          Serial.println(textBuffer);
           m_totales_i = atof(textBuffer);
           Serial.print(F("m_totales_i: "));
-          Serial.println(textBuffer);          
+          Serial.println(textBuffer);
         }
-        else 
+        else
         {
           Serial.print(F("Error al leer odometro enteros: "));
           Serial.println(textBuffer);
@@ -633,12 +625,12 @@ void printWelcome()
   Serial.println(F("START --> Arranque de la moto"));
   Serial.println(F("CONTA --> Pone en contacto la moto"));
   Serial.println(F("LOCKS --> Pide password al usuario"));
-  Serial.println(F("VIAJA --> Ingresa a la pantalla de viajar"));  
-  Serial.println(F("POWER --> Ingresa a la pantalla de arranque"));  
-  //  Serial.println("");      
+  Serial.println(F("VIAJA --> Ingresa a la pantalla de viajar"));
+  Serial.println(F("POWER --> Ingresa a la pantalla de arranque"));
+  // Serial.println("");
 
 
-  Serial.println(F("GOODB --> Para cerrar sesion"));  
+  Serial.println(F("GOODB --> Para cerrar sesion"));
   Serial.println(F(""));
 }
 
@@ -682,8 +674,8 @@ Protocolo de comunicacion:
       letra = Serial.read();
       palabra.concat(letra);
     }
-    //    Serial.print(F("Palabra tiene: "));
-    //   Serial.println(palabra);
+    // Serial.print(F("Palabra tiene: "));
+    // Serial.println(palabra);
     if ( palabra == "HELLO")
     {
       conectado = 1;
@@ -696,7 +688,7 @@ Protocolo de comunicacion:
       if ( palabra == "KMTOT")
       {
         Serial.println(m_totales_i);
-        Serial.println(m_totales_f);        
+        Serial.println(m_totales_f);
       }
       else if ( palabra == "START" )
       {
@@ -717,23 +709,23 @@ Protocolo de comunicacion:
         menuPrincipal();
         Serial.println(F("Desbloqueado"));
       }
-      else if ( palabra == "VIAJA" ) 
+      else if ( palabra == "VIAJA" )
       {
         Serial.println(F("Ingresando a viajar"));
         viajar();
         menuPrincipal();
-      }        
+      }
       else if ( palabra == "POWER" )
       {
         Serial.println(F("Ingresando en power screen"));
-        powerScreen(); 
+        powerScreen();
       }
       else if ( palabra == "KMSET")
       {
         palabra = "";
         Serial.println("Ingrese la parte decimal: 0.000");
         while ( Serial.available() < 5 ); //wait
-        for(int i = 0; i < 5; i++)  
+        for(int i = 0; i < 5; i++)
         {
           letra = Serial.read();
           palabra.concat(letra);
@@ -744,13 +736,13 @@ Protocolo de comunicacion:
         Serial.print("Km totales f seteado en :");
         Serial.println(m_totales_f);
         palabra = "";
-        Serial.println("Ingrese la parte entera: 12345");       
-        while ( Serial.available() < 5 ); //wait        
-        for(int i = 0; i < 5; i++)  
+        Serial.println("Ingrese la parte entera: 12345");
+        while ( Serial.available() < 5 ); //wait
+        for(int i = 0; i < 5; i++)
         {
           letra = Serial.read();
           palabra.concat(letra);
-        }        
+        }
         char str_aux[10];
         palabra.toCharArray(str_aux,10);
         m_totales_i = atoi(str_aux);
@@ -791,7 +783,7 @@ void loop()
       {
         waitForIt();
         viajar();
-        //        Serial.println("Sale de viajar");        
+        // Serial.println("Sale de viajar");
         menuPrincipal();
       }
       else if ( ( y > 190 ) ) //opcion Calentar
@@ -818,7 +810,7 @@ volatile long aux;
  0.000376 <-----> x
  */
 void contar()
-{ 
+{
   ultima_aux = millis() - aux; //Save delta of time since last pulse...
   if ( ultima_aux > 5 )
   {
@@ -829,7 +821,7 @@ void contar()
     {
       m_totales_i++;
       m_totales_f = 0;
-    }    
+    }
   }
 }
 
@@ -853,21 +845,6 @@ void ponerEnHora()
     myGLCD.print("error loading hora.raw",0,0);
     return;
   }
-
-  // int sensors[] = int(split(myString, ','));
-
-  // valores = int( split(rtc.formatTime(), ':'));
-  /*
-  valores = rtc.formatTime();
-   
-   hora = atoi ( strtok( valores, ":") );
-   // Serial.print("Hora");
-   // Serial.println(hora);
-   minuto = atoi ( strtok( NULL, ":") );
-   // Serial.print("Minuto");
-   // Serial.println(minuto); 
-   borrar!!!
-   */
 
   while(!salir)
   {
@@ -930,7 +907,7 @@ void ponerEnHora()
             else if ( y1 > 190 )
             {
               //Boton guardar
-              //rtc.setTime(hora, minuto, 00);
+              rtc.setTime(hora, minuto, 00);
               return;
             }
           }
@@ -940,14 +917,12 @@ void ponerEnHora()
 
 
 
-
-
 boolean guardarOdometro()
 {
   if ( m_totales_i == 0)
   {
     agregarMensaje("No hay valores para guardar");
-    return false;  
+    return false;
   }
   if ( file.exists(ODOMETRO) )
   {
@@ -1071,7 +1046,7 @@ void viajar()
   //Save values into file before leaving screen
 
   guardarOdometro();
-  //  myTouch.read();
+  // myTouch.read();
 
 }
 
@@ -1332,7 +1307,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000                                                   };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000   };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -1587,8 +1562,8 @@ void girarBurro()
 {
   myGLCD.setColor(255, 0, 0);
   myGLCD.setFont(SmallFont);
-  agregarMensaje("Spinning engine...");  
-  myGLCD.print("GIRA!", 233, 85); 
+  agregarMensaje("Spinning engine...");
+  myGLCD.print("GIRA!", 233, 85);
   digitalWrite(PIN_BURRO,HIGH);
   waitForIt();
   digitalWrite(PIN_BURRO,LOW);
@@ -1655,7 +1630,7 @@ void powerScreen()
         {
           waitForIt();
           digitalWrite(PIN_CONTA,LOW);
-          myGLCD.setFont(SmallFont);          
+          myGLCD.setFont(SmallFont);
           myGLCD.print("OFF", 105, 83);
           contacto = false;
 
@@ -1664,7 +1639,7 @@ void powerScreen()
         {
           waitForIt();
           digitalWrite(PIN_CONTA,HIGH);
-          myGLCD.setFont(SmallFont);          
+          myGLCD.setFont(SmallFont);
           myGLCD.print("ON ", 105, 83);
           contacto = true;
         }
@@ -1681,10 +1656,3 @@ void powerScreen()
   }
   menuPrincipal();
 }
-
-
-
-
-
-
-
