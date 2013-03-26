@@ -395,9 +395,6 @@ void imprimirHora()
   String hora = "";
   char *valores;
   String minuto = "";
-  myGLCD.setFont(BigFont);
-  myGLCD.setColor(255,255,255);
-  myGLCD.setBackColor(0,0,0);
   valores = rtc.formatTime();
   hora = strtok( valores, ":");
   minuto = strtok( NULL, ":");
@@ -425,6 +422,7 @@ void imprimirHora()
    */
   myGLCD.setFont(BigFont);
   myGLCD.setColor(255,255,255);
+  myGLCD.setBackColor(0,0,0);
   myGLCD.print(hora,x_hora,y_hora);
 
 }
