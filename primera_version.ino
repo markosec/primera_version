@@ -590,7 +590,7 @@ Estructura del archivo ARCHIVO (max 80):
         {
           Serial.print(F("lei del odometro2:"));
           Serial.println(textBuffer);
-          m_totales_i = atof(textBuffer);
+          m_totales_i = atol(textBuffer);
           Serial.print(F("m_totales_i: "));
           Serial.println(textBuffer);
         }
@@ -686,7 +686,9 @@ Protocolo de comunicacion:
     {
       if ( palabra == "KMTOT")
       {
+        Serial.println(F("Km totales, parte entera:"));
         Serial.println(m_totales_i);
+        Serial.println(F("Km totales, parte decimal (5 digitos)"));
         Serial.println(m_totales_f);
       }
       else if ( palabra == "START" )
@@ -744,9 +746,9 @@ Protocolo de comunicacion:
         }
         char str_aux[10];
         palabra.toCharArray(str_aux,10);
-        m_totales_i = atoi(str_aux);
+        m_totales_i = atol(str_aux);
         Serial.print("Km totales i seteado en :");
-        Serial.println(m_totales_i);
+        Serial.println(m_totales_i,DEC);
       }
     }
     else
@@ -952,7 +954,7 @@ boolean guardarOdometro()
     result=file.writeLn(textBuffer);
     if ( result == NO_ERROR )
     {
-      itoa(m_totales_i,textBuffer,10);
+      ltoa(m_totales_i,textBuffer,10);
       result = file.writeLn(textBuffer);
     }
 
