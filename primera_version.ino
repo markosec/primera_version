@@ -514,12 +514,12 @@ void setup()
     agregarMensaje(verboseError(res));
     Serial.println(verboseError(res));
   }
-  menuPrincipal();
+
   agregarMensaje("Cargando preferencias...");
   cargar();
 
-  // agregarMensaje("Solicitando password");
-  // initLogin();
+  agregarMensaje("Solicitando password");
+  initLogin();
 
   timer.setInterval(1000, imprimirHora);
   timer.setInterval(2000, callEscuchar);
@@ -527,6 +527,7 @@ void setup()
 
   agregarMensaje("Fin inicializacion");
   Serial.println(F("Fin Inicializacion"));
+  menuPrincipal();  
 
 }
 
@@ -721,7 +722,7 @@ Protocolo de comunicacion:
       else if ( palabra == "KMSET")
       {
         palabra = "";
-        Serial.println("Ingrese la parte decimal: 0.000");
+        Serial.println("Ingrese la parte decimal: (5 digitos)");
         while ( Serial.available() < 5 ); //wait
         for(int i = 0; i < 5; i++)
         {
@@ -730,11 +731,11 @@ Protocolo de comunicacion:
         }
         char str[10];
         palabra.toCharArray(str,10);
-        m_totales_f = atof(str);
+        m_totales_f = atoi(str);
         Serial.print("Km totales f seteado en :");
         Serial.println(m_totales_f);
         palabra = "";
-        Serial.println("Ingrese la parte entera: 12345");
+        Serial.println("Ingrese la parte entera: (5 digitos)");
         while ( Serial.available() < 5 ); //wait
         for(int i = 0; i < 5; i++)
         {
@@ -1305,7 +1306,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000   };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000     };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -1654,3 +1655,4 @@ void powerScreen()
   }
   menuPrincipal();
 }
+
