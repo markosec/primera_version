@@ -109,7 +109,7 @@ void printMarcha()
   // cuarta: D12
   // quinta: D13
   int numero;
-  char marcha;
+  String marcha;
   for (int i = 8; i < 14 ; i++)
   {
     if ( digitalRead(i) > 0)
@@ -119,10 +119,15 @@ void printMarcha()
     }
   }
   if (numero == 0)
-    marcha = '?';
+    marcha = "?";
   else
-    marcha = numero - 8;
-  // itoa((numero - 8),marcha,10); //obtener nro de marcha
+    marcha = String(numero - 8);
+  //itoa((numero - 8),marcha,10); //obtener nro de marcha
+  myGLCD.setFont(BigFont);
+  myGLCD.setBackColor(0,0,0);
+  myGLCD.setColor(0, 255, 0);
+
+  myGLCD.print(marcha, 80, 100);  
 }
 
 
@@ -523,6 +528,7 @@ void setup()
 
   timer.setInterval(1000, imprimirHora);
   timer.setInterval(2000, callEscuchar);
+//  timer.setInterval(500, printMarcha);  
   timer.setInterval(10000, imprimirNafta);
 
   agregarMensaje("Fin inicializacion");
@@ -1031,7 +1037,7 @@ void viajar()
          */
         kmh_aux = 3600000 * 0.376 / ultima / 1000 ;
         if ( kmh_aux < 300 )
-          KMH = kmh_aux + KMH / 2;
+          KMH =  ( kmh_aux + KMH ) / 2;
 
       }
       ////////////////////////////////////////////////////////////////
@@ -1040,7 +1046,7 @@ void viajar()
 
       printKmTotales();
 
-      // printMarcha();
+
       antes = millis();
     }
   }
@@ -1564,7 +1570,6 @@ void girarBurro()
 {
   myGLCD.setColor(255, 0, 0);
   myGLCD.setFont(SmallFont);
-  agregarMensaje("Spinning engine...");
   myGLCD.print("GIRA!", 233, 85);
   digitalWrite(PIN_BURRO,HIGH);
   waitForIt();
@@ -1651,6 +1656,7 @@ void powerScreen()
         //encendido del burro, solo mientras este presionado
         if (!encendido)
         {
+          agregarMensaje("Spinning engine...");
           girarBurro();
         }
       }
