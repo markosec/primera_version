@@ -424,15 +424,12 @@ void imprimirHora()
   String hora = "";
   char *valores;
   String minuto = "";
-  
-  valores = rtc.formatTime();
   /*
+  valores = rtc.formatTime();
    hora = strtok( valores, ":");
    minuto = strtok( NULL, ":");
    hora = hora + ":" + minuto;
-   valores = rtc.formatDate();
-   hora = hora + " " + valores;
-  */ 
+   */
   // Saved to time counter
   unsigned long t = millis();
 
@@ -471,6 +468,7 @@ void imprimirNafta()
 
   real = analogRead(PIN_NAFTA);
   gas = map(real,500,0,0,10);  
+  NAFTA = gas;
   medidorNafta(120,130,real,gas);
 }
 
@@ -536,11 +534,9 @@ void setup()
   messageBox();
   //Inicializacion Servo
   pinMode(PIN_SERVO, OUTPUT);
-  pinMode(PIN_CEBA , OUTPUT);
+  pinMode(PIN_CEBA, OUTPUT);
   pinMode(PIN_BURRO, OUTPUT);
   pinMode(PIN_CONTA, OUTPUT);
-  pinMode(PIN_POWSV, OUTPUT);
-
 
   pinMode(PIN_0RA, INPUT); //Deteccion de marcha 0
   digitalWrite(PIN_0RA, HIGH); //Pull up resistor
@@ -944,7 +940,7 @@ void setHora()
       waitForIt();      
       if( x > 17 && x < 67 )
       {//DIA
-      
+
         if ( y > 1 && y < 35  )
           dia++;
         else if ( y > 85 && y < 125  )
@@ -998,7 +994,7 @@ void setHora()
         printHh(hh);
         guardado = false;
       }
-      
+
       if( x > 174 && x < 214 )
       {//Minuto
         if ( y > 100 && y < 140  )
@@ -1015,26 +1011,26 @@ void setHora()
 
       if( x < 35 && y > 210 )
       {//Volver
-         if (!guardado)
-           {
-            rectangulo(60,100,260,200);
-            myGLCD.setColor(255,0,0);
-            myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
-            myGLCD.print("NO SE GUARDARON LOS CAMBIOS",90,150);
-            salir = true;
-           }
+        if (!guardado)
+        {
+          rectangulo(60,100,260,200);
+          myGLCD.setColor(255,0,0);
+          myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
+          myGLCD.print("NO SE GUARDARON LOS CAMBIOS",90,150);
+          salir = true;
+        }
       }
-      
+
       if( x < 35 && y > 210 )
       {//Volver
-         if (!guardado)
-           {
-            rectangulo(60,100,260,200);
-            myGLCD.setColor(255,0,0);
-            myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
-            //myGLCD.print("NO SE GUARDARON LOS CAMBIOS");
-            salir = true;
-           }
+        if (!guardado)
+        {
+          rectangulo(60,100,260,200);
+          myGLCD.setColor(255,0,0);
+          myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
+          //myGLCD.print("NO SE GUARDARON LOS CAMBIOS");
+          salir = true;
+        }
       }
     }
 
@@ -1493,11 +1489,44 @@ void viajarScreen()
 }
 
 
+void debugScreen()
+{
+
+  boolean salir = false;
+  long aux_ultima = 0;
+  myGLCD.clrScr();
+  myGLCD.setFont(BigFont);
+  myGLCD.print("Debug Screen:",20,30);
+  myGLCD.print("ultima: ",20,70) ;
+  myGLCD.printNumI(ultima,150,70) ;  
+  while( !salir)
+  {
+    if (myTouch.dataAvailable())
+    {
+      myTouch.read();
+      x = myTouch.getX();
+      y = myTouch.getY();
+      if ( y > 140 )
+        salir = true;
+    }
+    if (aux_ultima != ultima )
+    {
+      myGLCD.print("ultima: ",20,70) ;
+      myGLCD.printNumI(ultima,150,70) ;
+      aux_ultima = ultima;
+    }
+
+  }
+  viajarScreen();
+}
+
+
 void viajar()
 {
   int sentido = 1;
   int kmh_aux = 0;
 
+  boolean salir = false;
   viajarScreen();
 
   //Enable timers...
@@ -1505,9 +1534,21 @@ void viajar()
   timer.enable(timerHora);
   timer.enable(timerOdo);
 
-  while( !myTouch.dataAvailable())
+  while( !salir)
   {
     timer.run();
+
+    if( myTouch.dataAvailable())
+    {
+      myTouch.read();
+      x = myTouch.getX();
+      y = myTouch.getY();
+      if ( x > 100 && x < 205 && y > 40 && y < 100)
+        debugScreen();
+      else
+        salir = true;
+    }
+
     if ( ( millis() - antes ) >= 500 )
     {
       if ( ( millis() - aux ) > 1500 )
@@ -1533,7 +1574,6 @@ void viajar()
       antes = millis();
     }
   }
-
 
   timer.disable(timerNafta);
   timer.disable(timerHora);
@@ -1779,7 +1819,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000                                                                           };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000                                                                                     };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -2091,7 +2131,7 @@ void sliderH(int x, int y, int valor)
 
 }
 
-void manualScreen()
+void manualScreen( boolean conta)
 {
   myGLCD.clrScr();
   botonVolver();
@@ -2100,7 +2140,10 @@ void manualScreen()
   //Contacto
   rectangulo(10,40,103,140);
   myGLCD.setFont(BigFont);
-  myGLCD.print("OFF",35,80);
+  if (!conta)
+    myGLCD.print("OFF",35,80);
+  else
+    myGLCD.print("ON ",35,80);
 
   //CEBADOR
   rectangulo(113,40,203,140);
@@ -2203,24 +2246,24 @@ void arranqueAutomatico()
 
 void arranqueManual()
 {
-  manualScreen(); 
+
   int valor_acelerador = 0;
   int aux_valor_acelerador = 0;
   int cebador_default = 3;
   int valor_cebador = 0;
   int aux_valor_cebador = 0;  
   boolean salir = false;
-  boolean contacto = false;
+  static  boolean contacto = false;
   boolean cebador  = false;
 
+  manualScreen(contacto); 
+
+  digitalWrite(PIN_POWSV,HIGH);   // Enciende la potencia de los servos
+  delay(600);
   myAcelerador.attach(PIN_SERVO); // attaches the servo on pin to the servo object
   myCebador.attach(PIN_CEBA);     // attaches the servo on pin to the servo object
   myAcelerador.write(0);          // desacelerado
   myCebador.write(0 );            // sin cebador
-
-  digitalWrite(PIN_POWSV,HIGH);   // Enciende la potencia de los servos
-
-  delay(300);
 
   while( !salir)
   {
@@ -2235,7 +2278,6 @@ void arranqueManual()
         waitForIt();    
         salir = true; 
       }
-      //  rectangulo(113,40,203,140);
       else if ( x > 113 && x < 203 && y > 40 && y < 140)
       {
         waitForIt();    
@@ -2281,15 +2323,16 @@ void arranqueManual()
       {
         waitForIt();    
         myGLCD.setFont(BigFont);
-        if ( !contacto )
+        if ( contacto )
         {
+          Serial.println("Apago");          
           myGLCD.print("OFF",35,80);
           digitalWrite(PIN_CONTA,HIGH);  
           contacto = !contacto;      
         }
         else
         {
-          waitForIt();    
+          Serial.println("prendo");                    
           myGLCD.print("ON ",35,80);
           digitalWrite(PIN_CONTA,LOW);        
           contacto = !contacto;          
