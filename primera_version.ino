@@ -424,12 +424,15 @@ void imprimirHora()
   String hora = "";
   char *valores;
   String minuto = "";
-  /*
+  
   valores = rtc.formatTime();
+  /*
    hora = strtok( valores, ":");
    minuto = strtok( NULL, ":");
    hora = hora + ":" + minuto;
-   */
+   valores = rtc.formatDate();
+   hora = hora + " " + valores;
+  */ 
   // Saved to time counter
   unsigned long t = millis();
 
@@ -533,9 +536,11 @@ void setup()
   messageBox();
   //Inicializacion Servo
   pinMode(PIN_SERVO, OUTPUT);
-  pinMode(PIN_CEBA, OUTPUT);
+  pinMode(PIN_CEBA , OUTPUT);
   pinMode(PIN_BURRO, OUTPUT);
   pinMode(PIN_CONTA, OUTPUT);
+  pinMode(PIN_POWSV, OUTPUT);
+
 
   pinMode(PIN_0RA, INPUT); //Deteccion de marcha 0
   digitalWrite(PIN_0RA, HIGH); //Pull up resistor
