@@ -876,9 +876,43 @@ void opciones()
         setHora();
         setupScreen();
       }
+      //Salir
+      if ( (x < 31 ) && ( y > 210 ) )
+      {
+        salir = true;
+      }
+      //Mas opciones
+      if ( (x > 269 ) && ( y > 200 ) )
+      {
+        waitForIt();
+        masOpciones(); //Mas opciones
+        setupScreen();
+      }
+    }
+  }
+}
+
+void masOpciones()
+{
+  boolean salir = false;
+
+  setupScreen2(); 
+
+  while (!salir)
+  {
+    if (myTouch.dataAvailable())
+    {
+      myTouch.read();
+      x=myTouch.getX();
+      y=myTouch.getY();  
+      //Salir
+      if ( (x < 31 ) && ( y > 210 ) )
+      {
+        salir = true;
+      }
+
 
     }
-
   }
 }
 
@@ -886,6 +920,8 @@ void setupScreen()
 {
   myGLCD.clrScr();
   lineaCabecera();
+  botonSiguiente();  
+  botonVolver();
 
   myGLCD.setFont(BigFont);
   //Hora y fecha
@@ -896,10 +932,6 @@ void setupScreen()
   rectangulo(10,106,155,162);  
   myGLCD.print("ARRANQUE",20,126);
 
-  //Calentar  
-  rectangulo(10,172,155,228);  
-  myGLCD.print("CALENTAR",20,192);  
-
   //Nafta
   rectangulo(165,40,300,96);  
   myGLCD.print("NAFTA",192,60);  
@@ -908,14 +940,24 @@ void setupScreen()
   rectangulo(165,106,300,162);  
   myGLCD.print("GUARDADO",170,126);  
 
-  //Clave  
-  rectangulo(165,172,300,232);  
-  myGLCD.print("CLAVE",192,192);
-
-
 }
 
+void setupScreen2()
+{
 
+  myGLCD.clrScr();
+  lineaCabecera();
+  botonVolver();  
+
+  //Calentar  
+  rectangulo(10,40,155,96);
+  myGLCD.print("CALENTAR",20,60);  
+
+
+  rectangulo(165,40,300,96);  
+  myGLCD.print("CLAVE",192,60);
+
+}
 
 void setHora()
 {
@@ -1015,22 +1057,17 @@ void setHora()
         {
           rectangulo(60,100,260,200);
           myGLCD.setColor(255,0,0);
+          myGLCD.setFont(BigFont);
           myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
           myGLCD.print("NO SE GUARDARON LOS CAMBIOS",90,150);
+          delay(1000);
           salir = true;
         }
       }
 
-      if( x < 35 && y > 210 )
-      {//Volver
-        if (!guardado)
-        {
-          rectangulo(60,100,260,200);
-          myGLCD.setColor(255,0,0);
-          myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
-          //myGLCD.print("NO SE GUARDARON LOS CAMBIOS");
-          salir = true;
-        }
+      if ( (x < 31 ) && ( y > 210 ) )
+      {//Guardar
+        guardado = true;
       }
     }
 
@@ -1819,7 +1856,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000                                                                                     };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000                                                                                           };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -2495,6 +2532,8 @@ void lineaCabecera()
   myGLCD.drawLine(1,30,319,30);
   myGLCD.drawLine(1,31,319,31);    
 
+  timer.enable(timerHora);
+
 } 
 
 void botonGuardar()
@@ -2505,6 +2544,16 @@ void botonGuardar()
   myGLCD.setFont(BigFont);  
   myGLCD.print("S",296,218);  
 }
+
+void botonSiguiente()
+{
+  //Boton guardar
+  rectangulo(289,210,319,239);  
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
+  myGLCD.setFont(BigFont);  
+  myGLCD.print("+",296,218);  
+}
+
 void botonVolver()
 {
   rectangulo(1,210,31,239);  
@@ -2539,3 +2588,8 @@ void restador(int x, int y)
   //  myGLCD.drawLine(x+10,y+5,x+10,y+15);
   myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);      
 }
+
+
+
+
+
