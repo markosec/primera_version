@@ -5,7 +5,7 @@ Arduino motorcycle dashboard
 
 Faltantes:
 ===============
-=cambiar cooler roto
-=recalcular medidor de nafta
-=sensor de luces
-=Rehacer placa cambios
+-Cambiar cooler roto \n
+-Recalcular medidor de nafta /n
+-Sensor de luces
+-Rehacer placa cambios
