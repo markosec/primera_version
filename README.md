@@ -1,11 +1,11 @@
-primera_version
+Primera_version
 ===============
 
 Arduino motorcycle dashboard 
 
-faltantes:
+Faltantes:
 ===============
--back en setup
--recalcular medidor de nafta
--sensor de luces
--Rehacer placa cambios
+=cambiar cooler roto
+=recalcular medidor de nafta
+=sensor de luces
+=Rehacer placa cambios
