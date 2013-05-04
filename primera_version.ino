@@ -28,7 +28,7 @@
 #define PIN_5TA 13
 
 //Pin del sensor de rpm (cooler)...
-#define PIN_RPM 18
+#define PIN_RPM 19
 
 //Pines del relay del burro de arranque y servo acelerador
 
@@ -553,7 +553,7 @@ void setup()
 
   pinMode(PIN_NAFTA, INPUT);
 
-  attachInterrupt(5, contar, RISING); //PIN_RPM
+  attachInterrupt(4, contar, RISING); //PIN_RPM
 
   agregarMensaje("Iniciando SD..."); 
   res = file.initFAT(SPISPEED_HIGH);
@@ -2588,8 +2588,3 @@ void restador(int x, int y)
   //  myGLCD.drawLine(x+10,y+5,x+10,y+15);
   myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);      
 }
-
-
-
-
-
