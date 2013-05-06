@@ -13,7 +13,7 @@ void setup()
 {
   myGLCD.InitLCD(LANDSCAPE);
   myGLCD.clrScr();
-  viajarScreen();
+  confArranqueScreen();
 }
 void loop()
 {
@@ -309,7 +309,7 @@ void sliderH(int x, int y, int valor)
     myGLCD.drawLine((x+(i*20)),y-2,(x+(i*20)),y+3);
   }
   //Valor esta entre 0 y 5
-  myGLCD.fillCircle((x + (20 * valor)),y,10);
+  myGLCD.fillCircle((x + (20 * valor)),y,SLIDER_BUTTON_H);
   myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
   myGLCD.drawCircle((x + (20 * valor)),y,4);
 
@@ -584,13 +584,39 @@ void cambioPassScreen()
 
 
 
-
-
-
-
-
-
-
-
-
-
+void confArranqueScreen()
+{
+  //Tiempo giro del burro...
+  sliderH(40,90,0);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(65, 140 ,255);      
+  myGLCD.print("Burro de arranque",40,60);  
+  
+  //Cebador
+  sliderH(40,140,0);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(65, 140 ,255);      
+  myGLCD.print("Cebador",40,110);    
+  
+  
+  //Acelerador
+  sliderH(180,90,0);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(55, 140 ,255);      
+  myGLCD.print("Acelerador",180,60);      
+  
+  
+  //Tiempo Acelerado..
+  sliderH(180,140,2);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(55, 140 ,255);      
+  myGLCD.print("Tiempo Acelerado",180,110);      
+  
+  
+  //Tiempo Desacelerado..
+  sliderH(180,180,2);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(55, 140 ,255);      
+  myGLCD.print("Tiempo Desacelerado",30,150);        
+   
+}
