@@ -33,7 +33,7 @@
 //Pines del relay del burro de arranque y servo acelerador
 
 #define PIN_SERVO 57 //Analog input pin 3 acelerador
-#define PIN_CEBA  56 //Analog input pin 2 cebador
+#define PIN_CEBA 56 //Analog input pin 2 cebador
 #define PIN_BURRO 55 //Analog input pin 1 burro
 #define PIN_CONTA 54 //Analog input pin 0 contacto
 #define PIN_POWSV 58 //Analog input pin 4 Fuente para los servos
@@ -52,15 +52,15 @@
 #define COLOR_BACK_G 0
 #define COLOR_BACK_B 0
 
-//Rectangulo 
+//Rectangulo
 #define LINE_THICK 5
 
 
 #define SLIDER_LENGTH 100
 #define SLIDER_BUTTON_H 10
 
-#define X_MARCHA  45
-#define Y_MARCHA  140
+#define X_MARCHA 45
+#define Y_MARCHA 140
 
 #define x_hora 15
 #define y_hora 8
@@ -148,14 +148,14 @@ void printKmTotales()
 void printMarcha()
 {
   //Pines :
-  // punto muerto: D8   PIN_0RA
-  // primera:      D9   PIN_1RA
-  // segunda:      D10  PIN_2DA
-  // tercera:      D11  PIN_3RA
-  // cuarta:       D12  PIN_4TA
-  // quinta:       D13  PIN_5TA
+  // punto muerto: D8 PIN_0RA
+  // primera: D9 PIN_1RA
+  // segunda: D10 PIN_2DA
+  // tercera: D11 PIN_3RA
+  // cuarta: D12 PIN_4TA
+  // quinta: D13 PIN_5TA
 
-  int numero; 
+  int numero;
 
   for (int i = 8; i < 14 ; i++)
   {
@@ -165,7 +165,7 @@ void printMarcha()
       break;
     }
   }
-  numero = numero - 8;  //Corrije el desplazamiento de los pines respecto de la marcha actual
+  numero = numero - 8; //Corrije el desplazamiento de los pines respecto de la marcha actual
   marcha(X_MARCHA,Y_MARCHA,numero);
 
 }
@@ -262,10 +262,10 @@ void printRpm( int rpeme, int sentido)
   int y2 ;
   /*
 myGLCD.drawBitmap(40, 100, 10, 12, barra_verde,40,5,6);
-   myGLCD.drawBitmap(80, 100, 10, 12, barra_amarilla,80,5,6);
-   myGLCD.drawBitmap(120, 100, 10, 12, barra_roja,120,5,6);
-   barras = 10x12
-   */
+myGLCD.drawBitmap(80, 100, 10, 12, barra_amarilla,80,5,6);
+myGLCD.drawBitmap(120, 100, 10, 12, barra_roja,120,5,6);
+barras = 10x12
+*/
 
   myGLCD.setColor(255,0,0);
   if (rpeme == 10)
@@ -348,7 +348,7 @@ void agregarMensaje( String m )
   String t_aux[30];
   String l_aux;
   boolean alto;
-  int idx = 0;     
+  int idx = 0;
   int longitud = m.length() / MAX_MSJ;
   if ( m.length() % MAX_MSJ > 0)
     longitud++;
@@ -425,11 +425,11 @@ void imprimirHora()
   char *valores;
   String minuto = "";
   /*
-  valores = rtc.formatTime();
-   hora = strtok( valores, ":");
-   minuto = strtok( NULL, ":");
-   hora = hora + ":" + minuto;
-   */
+valores = rtc.formatTime();
+hora = strtok( valores, ":");
+minuto = strtok( NULL, ":");
+hora = hora + ":" + minuto;
+*/
   // Saved to time counter
   unsigned long t = millis();
 
@@ -455,8 +455,8 @@ void imprimirHora()
 
 
   myGLCD.setFont(BigFont);
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
-  myGLCD.setBackColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);  
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
+  myGLCD.setBackColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
   myGLCD.print(hora,x_hora,y_hora);
 
 }
@@ -467,13 +467,13 @@ void imprimirNafta()
   long real = 0;
 
   real = analogRead(PIN_NAFTA);
-  gas = map(real,500,0,0,10);  
+  gas = map(real,500,0,0,10);
   NAFTA = gas;
   medidorNafta(120,130,real,gas);
 }
 
 void mainScreen()
-{ 
+{
 
 
   timer.enable(timerHora);
@@ -485,7 +485,7 @@ void mainScreen()
   myGLCD.setFont(BigFont);
   //Arrancar
   rectangulo (10,40,150,130);
-  myGLCD.print("ARRANCAR",17,80); 
+  myGLCD.print("ARRANCAR",17,80);
 
   //Viajar
   rectangulo (10,145,150,230);
@@ -501,11 +501,11 @@ void mainScreen()
 void menuPrincipal()
 {
 
-  if(repetir_login)  
-  {   
-    agregarMensaje("Solicitando password");  
+  if(repetir_login)
+  {
+    agregarMensaje("Solicitando password");
     initLogin();
-    agregarMensaje("Succesful login!");          
+    agregarMensaje("Succesful login!");
   }
   mainScreen();
   printMessages();
@@ -555,13 +555,13 @@ void setup()
 
   attachInterrupt(4, contar, RISING); //PIN_RPM
 
-  agregarMensaje("Iniciando SD..."); 
+  agregarMensaje("Iniciando SD...");
   res = file.initFAT(SPISPEED_HIGH);
   delay(100);
   if ( res == NO_ERROR )
     agregarMensaje("SD iniciada");
   else
-  {    
+  {
     agregarMensaje(verboseError(res));
     Serial.println(verboseError(res));
   }
@@ -572,9 +572,9 @@ void setup()
 
   agregarMensaje("Setup de timers..");
   timerEscucha = timer.setInterval(2000, callEscuchar);
-  timerNafta   = timer.setInterval(10000, imprimirNafta);
-  timerHora    = timer.setInterval(1000, imprimirHora);
-  timerOdo     = timer.setInterval(guarda_odo,guardarOdometro);
+  timerNafta = timer.setInterval(10000, imprimirNafta);
+  timerHora = timer.setInterval(1000, imprimirHora);
+  timerOdo = timer.setInterval(guarda_odo,guardarOdometro);
   timer.disable(timerNafta);
   timer.disable(timerHora);
   timer.disable(timerOdo);
@@ -590,11 +590,11 @@ void cargar()
 {
   /*
 Estructura del archivo ARCHIVO (max 80):
-   largo ---- tipo ---------- significado
-   9999 int tiempo acelerado (calentar)
-   9999 int tiempo desacelerado (calentar)
-   999 int angulo aceleracion (calentar)
-   */
+largo ---- tipo ---------- significado
+9999 int tiempo acelerado (calentar)
+9999 int tiempo desacelerado (calentar)
+999 int angulo aceleracion (calentar)
+*/
 
   word result = 0;
   if (file.exists(ARCHIVO))
@@ -693,25 +693,25 @@ void escuchar( int donde )
 {
   /*
 Protocolo de comunicacion:
-   PC: HELLO
-   YO: HOLA
-   PC: [CODIGO1]
-   YO: [RESPUESTA1]
-   PC: [CODIGO2]
-   YO: [RESPUESTA2]
-   .
-   .
-   .
-   PC: [CODIGON]
-   YO: [RESPUESTAN]
-   PC: GOODB
-   YO: CHAU
-   Se deben recibir de a 5 caracteres los comandos (FIJO!)
-   donde: contiene desde donde se llama la funcion de escuchar (calentar, arrancar, viajar, etc)
-   0 = lo op principal
-   1 = calentar
-   2 = viajar
-   */
+PC: HELLO
+YO: HOLA
+PC: [CODIGO1]
+YO: [RESPUESTA1]
+PC: [CODIGO2]
+YO: [RESPUESTA2]
+.
+.
+.
+PC: [CODIGON]
+YO: [RESPUESTAN]
+PC: GOODB
+YO: CHAU
+Se deben recibir de a 5 caracteres los comandos (FIJO!)
+donde: contiene desde donde se llama la funcion de escuchar (calentar, arrancar, viajar, etc)
+0 = lo op principal
+1 = calentar
+2 = viajar
+*/
 
 #define LC_PRINCIPAL 0
 #define LC_CALENTAR 1
@@ -817,7 +817,7 @@ Protocolo de comunicacion:
 
 
 void loop()
-{  
+{
 
   timer.run();
 
@@ -843,7 +843,7 @@ void loop()
         menuPrincipal();
       }
     }
-    //  circulo(255,85,50);    
+    // circulo(255,85,50);
     if ( x > 200 && y > 40 && y < 140 )
     {
       waitForIt();
@@ -860,7 +860,7 @@ void opciones()
 
   boolean salir = false;
 
-  setupScreen(); 
+  setupScreen();
 
   while (!salir)
   {
@@ -869,7 +869,7 @@ void opciones()
       myTouch.read();
       x=myTouch.getX();
       y=myTouch.getY();
-      //      10,40,155,96);
+      // 10,40,155,96);
       if( x > 10 && x < 155 && y > 30 && y < 96)
       {//Hora
         waitForIt();
@@ -896,7 +896,7 @@ void masOpciones()
 {
   boolean salir = false;
 
-  setupScreen2(); 
+  setupScreen2();
 
   while (!salir)
   {
@@ -904,7 +904,7 @@ void masOpciones()
     {
       myTouch.read();
       x=myTouch.getX();
-      y=myTouch.getY();  
+      y=myTouch.getY();
       //Salir
       if ( (x < 31 ) && ( y > 210 ) )
       {
@@ -920,7 +920,7 @@ void setupScreen()
 {
   myGLCD.clrScr();
   lineaCabecera();
-  botonSiguiente();  
+  botonSiguiente();
   botonVolver();
 
   myGLCD.setFont(BigFont);
@@ -929,16 +929,16 @@ void setupScreen()
   myGLCD.print("HORA",50,60);
 
   //Arranque
-  rectangulo(10,106,155,162);  
+  rectangulo(10,106,155,162);
   myGLCD.print("ARRANQUE",20,126);
 
   //Nafta
-  rectangulo(165,40,300,96);  
-  myGLCD.print("NAFTA",192,60);  
+  rectangulo(165,40,300,96);
+  myGLCD.print("NAFTA",192,60);
 
   //Guardado
-  rectangulo(165,106,300,162);  
-  myGLCD.print("GUARDADO",170,126);  
+  rectangulo(165,106,300,162);
+  myGLCD.print("GUARDADO",170,126);
 
 }
 
@@ -947,14 +947,14 @@ void setupScreen2()
 
   myGLCD.clrScr();
   lineaCabecera();
-  botonVolver();  
+  botonVolver();
 
-  //Calentar  
+  //Calentar
   rectangulo(10,40,155,96);
-  myGLCD.print("CALENTAR",20,60);  
+  myGLCD.print("CALENTAR",20,60);
 
 
-  rectangulo(165,40,300,96);  
+  rectangulo(165,40,300,96);
   myGLCD.print("CLAVE",192,60);
 
 }
@@ -975,45 +975,45 @@ void setHora()
   while (!salir)
   {
     if (myTouch.dataAvailable())
-    {    
-      myTouch.read();      
+    {
+      myTouch.read();
       x=myTouch.getX();
       y=myTouch.getY();
-      waitForIt();      
+      waitForIt();
       if( x > 17 && x < 67 )
       {//DIA
 
-        if ( y > 1 && y < 35  )
+        if ( y > 1 && y < 35 )
           dia++;
-        else if ( y > 85 && y < 125  )
+        else if ( y > 85 && y < 125 )
           dia--;
         if ( dia > 31 )
           dia = 1;
         else if (dia < 1)
           dia = 31;
-        guardado = false;          
+        guardado = false;
         printDia(dia);
       }
 
       if( x > 102 && x < 142 )
       {//MES
-        if ( y > 1 && y < 35  )
+        if ( y > 1 && y < 35 )
           mes++;
-        else if ( y > 85 && y < 125  )
+        else if ( y > 85 && y < 125 )
           mes--;
         if ( mes > 12 )
           mes = 1;
         else if (mes < 1)
           mes = 12;
         printMes(mes);
-        guardado = false;        
+        guardado = false;
       }
 
       if( x > 220 && x < 260 )
       {//Anio
-        if ( y > 1 && y < 35  )
+        if ( y > 1 && y < 35 )
           anio++;
-        else if ( y > 85 && y < 125  )
+        else if ( y > 85 && y < 125 )
           anio--;
         if ( anio > 2020 )
           anio = 2012;
@@ -1025,9 +1025,9 @@ void setHora()
 
       if( x > 52 && x < 92 )
       {//Hora
-        if ( y > 100 && y < 140  )
+        if ( y > 100 && y < 140 )
           hh++;
-        else if ( y > 190 && y < 230  )
+        else if ( y > 190 && y < 230 )
           hh--;
         if ( hh > 23 )
           hh = 00;
@@ -1039,9 +1039,9 @@ void setHora()
 
       if( x > 174 && x < 214 )
       {//Minuto
-        if ( y > 100 && y < 140  )
+        if ( y > 100 && y < 140 )
           mm++;
-        else if ( y > 190 && y < 230  )
+        else if ( y > 190 && y < 230 )
           mm--;
         if ( mm > 59 )
           mm = 00;
@@ -1049,7 +1049,7 @@ void setHora()
           mm = 59;
         printMm(mm);
         guardado = false;
-      }      
+      }
 
       if( x < 35 && y > 210 )
       {//Volver
@@ -1081,36 +1081,36 @@ void setHora()
 void printDia(int dia)
 {
   myGLCD.setFont(SevenSegNumFont);
-  myGLCD.setColor(0, 215, 0);        
-  myGLCD.printNumI(dia,15,35,2,'0'); 
+  myGLCD.setColor(0, 215, 0);
+  myGLCD.printNumI(dia,15,35,2,'0');
 }
 
 
 void printMes(int mes)
 {
   myGLCD.setFont(SevenSegNumFont);
-  myGLCD.setColor(0, 215, 0);        
-  myGLCD.printNumI(mes,100,35,2,'0'); 
+  myGLCD.setColor(0, 215, 0);
+  myGLCD.printNumI(mes,100,35,2,'0');
 }
 
 void printAnio(int anio)
-{ 
+{
   myGLCD.setFont(SevenSegNumFont);
-  myGLCD.setColor(0, 215, 0);        
-  myGLCD.printNumI(anio,187,35,4,'0');   
+  myGLCD.setColor(0, 215, 0);
+  myGLCD.printNumI(anio,187,35,4,'0');
 }
 
 void printHh(int hh)
 {
   myGLCD.setFont(SevenSegNumFont);
-  myGLCD.setColor(0, 215, 0);      
-  myGLCD.printNumI(hh,50,150,2,'0');  
+  myGLCD.setColor(0, 215, 0);
+  myGLCD.printNumI(hh,50,150,2,'0');
 }
 void printMm(int mm)
 {
   myGLCD.setFont(SevenSegNumFont);
-  myGLCD.setColor(0, 215, 0);      
-  myGLCD.printNumI(mm,172,150,2,'0');  
+  myGLCD.setColor(0, 215, 0);
+  myGLCD.printNumI(mm,172,150,2,'0');
 
 
 }
@@ -1124,7 +1124,7 @@ void confHoraScreen(int hh,int mm,int dia,int mes,int anio)
   botonGuardar();
 
 
-  //Dia 
+  //Dia
   sumador(37,5);
   rectangulo(10,30,85,90);
   restador(37,95);
@@ -1163,8 +1163,8 @@ volatile long ultima_aux;
 volatile long aux;
 /*
 999 <----> 3600000
- 0.000376 <-----> x
- */
+0.000376 <-----> x
+*/
 void contar()
 {
   ultima_aux = millis() - aux; //Save delta of time since last pulse...
@@ -1172,11 +1172,11 @@ void contar()
   {
     ultima = ultima_aux;
     aux = millis(); //Remember when this pulse arrived...
-    m_totales_f = m_totales_f + 00037600; //Total traveled meters since last pulse
-    if ( m_totales_f >= 100000 )
+    m_totales_f = m_totales_f + 376; //Total traveled meters since last pulse
+    if ( m_totales_f >= 1000000 )
     {
       m_totales_i++;
-      m_totales_f = 0;
+      m_totales_f = m_totales_f - 1000000;
     }
   }
 }
@@ -1273,7 +1273,7 @@ void ponerEnHora()
 
 
 
-void  guardarOdometro()
+void guardarOdometro()
 {
   if ( m_totales_i == 0)
   {
@@ -1342,36 +1342,36 @@ void callEscuchar()
 void medidorRpm(int x1, int y1, int cuanto)
 {
   int ancho = 40;
-  // 30  100 22 ejemplo
+  // 30 100 22 ejemplo
   int y = 160 + y1; //Para ir de abajo para arriba
   int linea = 160 / 22;
   //40 x 110 px de tamaño, cada 5 px 1 medida (22 max)
   rectangulo(x1,y1,x1+ancho, y1+160);
-  myGLCD.setColor(0, 255,0);  //Verde
+  myGLCD.setColor(0, 255,0); //Verde
   for (int i = 1 ; i<22;i++)
   {
     if (i > cuanto)
-      myGLCD.setColor(0, 0,0);  //Negro
-    else  
+      myGLCD.setColor(0, 0,0); //Negro
+    else
       switch(i)
     {
     case 10:
-      myGLCD.setColor(255,255,0);  //Amarillo
+      myGLCD.setColor(255,255,0); //Amarillo
       break;
     case 15:
-      myGLCD.setColor(255, 0,0);  //rojo
-      break;    
+      myGLCD.setColor(255, 0,0); //rojo
+      break;
     }
-    myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-3);    
-    myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-2);    
+    myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-3);
+    myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-2);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-1);
-    //    myGLCD.fillRect(x1+LINE_THICK,y-(i*5)+2,(x1+ancho-LINE_THICK),y-(i*5)-2);
+    // myGLCD.fillRect(x1+LINE_THICK,y-(i*5)+2,(x1+ancho-LINE_THICK),y-(i*5)-2);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*linea),(x1+ancho-LINE_THICK),y-(i*linea));
 
   }
 }
 
-void   medidorNafta( int x1, int y1, int real,int cuanto)
+void medidorNafta( int x1, int y1, int real,int cuanto)
 {
   int y = 240; //Para ir de abajo para arriba
   int ancho = 20;
@@ -1381,29 +1381,29 @@ void   medidorNafta( int x1, int y1, int real,int cuanto)
   y = y1 + 100;
   myGLCD.setFont(SmallFont);
   myGLCD.print(numero,x1+ancho+15,y-25,90);
-  myGLCD.setColor(255,0,0);  //Rojo
+  myGLCD.setColor(255,0,0); //Rojo
   for (int i = 1 ; i<10;i++)
   {
     if (i > cuanto)
-      myGLCD.setColor(0, 0,0);  //Negro
-    else      
+      myGLCD.setColor(0, 0,0); //Negro
+    else
       switch(i)
     {
     case 6:
-      myGLCD.setColor(0, 255,0);  //Amarillo
+      myGLCD.setColor(0, 255,0); //Amarillo
       break;
     case 3:
-      myGLCD.setColor(255, 255,0);  //rojo
-      break;    
+      myGLCD.setColor(255, 255,0); //rojo
+      break;
     }
-    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+3,x1+ancho-LINE_THICK,y-(i*10)+3);            
-    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+2,x1+ancho-LINE_THICK,y-(i*10)+2);        
-    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+1,x1+ancho-LINE_THICK,y-(i*10)+1);        
+    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+3,x1+ancho-LINE_THICK,y-(i*10)+3);
+    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+2,x1+ancho-LINE_THICK,y-(i*10)+2);
+    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+1,x1+ancho-LINE_THICK,y-(i*10)+1);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*10),x1+ancho-LINE_THICK,y-(i*10));
     myGLCD.fillRect(x1+LINE_THICK,y-(i*10)-1,x1+ancho-LINE_THICK,y-(i*10)-1);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*10)-2,x1+ancho-LINE_THICK,y-(i*10)-2);
-    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)-3,x1+ancho-LINE_THICK,y-(i*10)-3);    
-  }  
+    myGLCD.fillRect(x1+LINE_THICK,y-(i*10)-3,x1+ancho-LINE_THICK,y-(i*10)-3);
+  }
 }
 
 void velocimetro( int x, int y, int velocidad)
@@ -1418,8 +1418,8 @@ void velocimetro( int x, int y, int velocidad)
 void ponerVelocidad(int x, int y, int velocidad)
 {
   myGLCD.setColor(0,255,0);
-  myGLCD.setFont(SevenSegNumFont);  
-  myGLCD.printNumI(velocidad, x+LINE_THICK,y+LINE_THICK, 3,'0'); 
+  myGLCD.setFont(SevenSegNumFont);
+  myGLCD.printNumI(velocidad, x+LINE_THICK,y+LINE_THICK, 3,'0');
 }
 
 void marcha(int x, int y, int marcha)
@@ -1431,8 +1431,8 @@ void marcha(int x, int y, int marcha)
     String texto = String(marcha);
     rectangulo(x,y,x+45,y+60);
     myGLCD.setFont(SevenSegNumFont);
-    myGLCD.setColor(255,70,43);   
-    myGLCD.print(texto, x+LINE_THICK+3,y+LINE_THICK);  
+    myGLCD.setColor(255,70,43);
+    myGLCD.print(texto, x+LINE_THICK+3,y+LINE_THICK);
   }
 
 }
@@ -1442,7 +1442,7 @@ void luces(int x, int y, int posicion, int bajas, int altas)
 
   //Limpiar el area
   myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
-  myGLCD.fillRect(x+2,y-20,x+38,y+20);    
+  myGLCD.fillRect(x+2,y-20,x+38,y+20);
   myGLCD.setColor(100,100,255);
   myGLCD.fillCircle(x,y,20);
 
@@ -1460,39 +1460,37 @@ void luces(int x, int y, int posicion, int bajas, int altas)
 
     if (bajas == 1)
     {
-      myGLCD.setColor(100,100,255);  
+      myGLCD.setColor(100,100,255);
       myGLCD.drawLine(x+5,y-8 ,x+35,y);
       myGLCD.drawLine(x+5,y-4 ,x+35,y+4);
-      myGLCD.drawLine(x+5,y   ,x+35,y+8);  
-      myGLCD.drawLine(x+5,y+4 ,x+35,y+12);  
-      myGLCD.drawLine(x+5,y+8 ,x+35,y+16);    
+      myGLCD.drawLine(x+5,y ,x+35,y+8);
+      myGLCD.drawLine(x+5,y+4 ,x+35,y+12);
+      myGLCD.drawLine(x+5,y+8 ,x+35,y+16);
     }
     else
     {
-      myGLCD.setColor(100,100,255);  
+      myGLCD.setColor(100,100,255);
       myGLCD.drawLine(x+5,y-8 ,x+35,y-8);
-      myGLCD.drawLine(x+5,y-4 ,x+35,y-4);  
-      myGLCD.drawLine(x+5,y   ,x+35,y  ) ;    
+      myGLCD.drawLine(x+5,y-4 ,x+35,y-4);
+      myGLCD.drawLine(x+5,y ,x+35,y ) ;
       myGLCD.drawLine(x+5,y+4 ,x+35,y+4);
-      myGLCD.drawLine(x+5,y+8 ,x+35,y+8);  
+      myGLCD.drawLine(x+5,y+8 ,x+35,y+8);
 
 
     }
-  } 
+  }
 
 }
 
 void odometro(int x, int y)
-{  
-  String aux_str;  
+{
+  String aux_str;
   int aux_mts = 0;
+  
+  aux_mts = m_totales_f / 10000;
+
   myGLCD.setFont(BigFont);
-  myGLCD.setColor(100,100,255);  
-  aux_mts = m_totales_f  / 1000;
-  /*  aux_str = String(m_totales_f / 100000);
-   if (aux_str.length() > 2)
-   aux_str = aux_str.substring(0,2);
-   */
+  myGLCD.setColor(100,100,255);
   myGLCD.printNumI(aux_mts, x+95,y,2,'0');
   myGLCD.print(".", (x+80),y);
   myGLCD.printNumI(m_totales_i,x,y,5,'0');
@@ -1502,7 +1500,7 @@ void odometro(int x, int y)
 void viajarScreen()
 {
   myGLCD.clrScr();
-  lineaCabecera();  
+  lineaCabecera();
   botonVolver();
   messageBox();
 
@@ -1512,7 +1510,7 @@ void viajarScreen()
   medidorNafta(120,130,0,0);
 
 
-  //160,145,310,230); 
+  //160,145,310,230);
 
 
 
@@ -1535,7 +1533,7 @@ void debugScreen()
   myGLCD.setFont(BigFont);
   myGLCD.print("Debug Screen:",20,30);
   myGLCD.print("ultima: ",20,70) ;
-  myGLCD.printNumI(ultima,150,70) ;  
+  myGLCD.printNumI(ultima,150,70) ;
   while( !salir)
   {
     if (myTouch.dataAvailable())
@@ -1596,26 +1594,26 @@ void viajar()
       else
       {
         /*
-        si ultima ----------> 0,376
-         entonces 3600000----------> X metros
-         */
-        kmh_aux = 3600000 * 0.376 / ultima / 1000 ;
+si ultima ----------> 0,376
+entonces 3600000----------> X metros
+*/
+        kmh_aux = 3600000 * 0.000376 / ultima ;
         if ( kmh_aux < 300 )
-          KMH =  ( kmh_aux + KMH ) / 2;
+          KMH = ( kmh_aux + KMH ) / 2;
 
       }
       ////////////////////////////////////////////////////////////////
       ponerVelocidad(100,40,KMH);
       odometro(160,125);
-      printMarcha();      
+      printMarcha();
       antes = millis();
     }
   }
 
   timer.disable(timerNafta);
   timer.disable(timerHora);
-  timer.disable(timerOdo);  
-  //Save values into file before leaving screen  
+  timer.disable(timerOdo);
+  //Save values into file before leaving screen
   guardarOdometro();
   // myTouch.read();
 
@@ -1856,7 +1854,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000                                                                                           };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000 };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -1904,7 +1902,7 @@ void loginScreen()
 
   // Draw the lower row of buttons
   rectangulo(10, 130, 150, 180);
-  myGLCD.print("Clear", 40, 147);  
+  myGLCD.print("Clear", 40, 147);
 
   rectangulo(160, 130, 300, 180);
   myGLCD.print("Enter", 190, 147);
@@ -1929,7 +1927,7 @@ void initLogin()
         if ((x>=10) && (x<=60)) // Button: 1
         {
           waitForIt(10, 10, 60, 60);
-          updateStr('1');     
+          updateStr('1');
         }
         if ((x>=70) && (x<=120)) // Button: 2
         {
@@ -2106,7 +2104,7 @@ void girarBurro()
 void arrancarScreen()
 {
   myGLCD.clrScr();
-  lineaCabecera();  
+  lineaCabecera();
   botonVolver();
 
   //Automatico
@@ -2116,7 +2114,7 @@ void arrancarScreen()
 
   //Manual
   rectangulo(165,70,310,170);
-  myGLCD.print("MANUAL",190,110);  
+  myGLCD.print("MANUAL",190,110);
 }
 
 
@@ -2124,8 +2122,8 @@ void autoScreen()
 {
   myGLCD.clrScr();
 
-  botonVolver();  
-  lineaCabecera();  
+  botonVolver();
+  lineaCabecera();
 
   //EMPEZAR
   rectangulo(10,70,155,170);
@@ -2134,7 +2132,7 @@ void autoScreen()
 
   //PARAR
   rectangulo(165,70,310,170);
-  myGLCD.print("PARAR",195,110);  
+  myGLCD.print("PARAR",195,110);
 
 
 }
@@ -2143,14 +2141,14 @@ void sliderH(int x, int y, int valor)
 {
 
   //Borrado de la zona...
-  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);    
+  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
   myGLCD.fillRect(x-10,y-10,x+SLIDER_LENGTH+10,y+10);
 
 
-  //Linea 
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
+  //Linea
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
   myGLCD.drawLine(x,y,x + SLIDER_LENGTH,y);
-  myGLCD.drawLine(x,y,x + SLIDER_LENGTH + 1,y);  
+  myGLCD.drawLine(x,y,x + SLIDER_LENGTH + 1,y);
 
   for (int i=0; i <= 5; i++)
   {
@@ -2159,12 +2157,12 @@ void sliderH(int x, int y, int valor)
   }
 
   //Valor esta entre 0 y 5
-  myGLCD.fillCircle((x + (20 * valor)),y,10);
-  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);    
-  myGLCD.drawCircle((x + (20 * valor)),y,4);    
+  myGLCD.fillCircle((x + (20 * valor)),y,SLIDER_BUTTON_H);
+  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
+  myGLCD.drawCircle((x + (20 * valor)),y,4);
 
 
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);    
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
 
 }
 
@@ -2184,7 +2182,7 @@ void manualScreen( boolean conta)
 
   //CEBADOR
   rectangulo(113,40,203,140);
-  myGLCD.print("CHOKE",119,75); 
+  myGLCD.print("CHOKE",119,75);
   myGLCD.print("OFF",130,95); //Variable?
 
   //calentar
@@ -2192,13 +2190,13 @@ void manualScreen( boolean conta)
   myGLCD.print("START",219,80);
 
   //Seccion Sliders
-  myGLCD.setFont(SmallFont);  
+  myGLCD.setFont(SmallFont);
 
   //Aceleador
   sliderH(30,180,0); //Variable?
   myGLCD.print("Acelerador",30,150);
 
-  sliderH(180,180,0);   //Variable?
+  sliderH(180,180,0); //Variable?
   myGLCD.print("Cebador",190,150);
 }
 
@@ -2211,8 +2209,8 @@ boolean verSiParo()
   {
     myTouch.read();
     x=myTouch.getX();
-    y=myTouch.getY();    
-    if ( x > 165 && x < 310 && y > 70 && y < 170 )    
+    y=myTouch.getY();
+    if ( x > 165 && x < 310 && y > 70 && y < 170 )
     {//Dentro de "parar"?
       return false;
     }
@@ -2237,7 +2235,7 @@ void arranqueAutomatico()
       }
       else if ( x > 10 && x < 155 && y > 70 && y < 170 )
       {
-        //        agregarMensaje("Secuencia de arranque");
+        // agregarMensaje("Secuencia de arranque");
         if (verSiParo())
         {
           myAcelerador.attach(PIN_SERVO); // attaches the servo on pin to the servo object
@@ -2247,34 +2245,34 @@ void arranqueAutomatico()
           delay(300);
           if (verSiParo())
           {
-            //          agregarMensaje("Cebando el motor...");
+            // agregarMensaje("Cebando el motor...");
             myCebador.write(300);
             //agregarMensaje("Acelerando...");
             myAcelerador.write(90); //Acelero
             delay(300); //espero al servo
             if (verSiParo())
-            {            
-              //          agregarMensaje("Girando burro!");
+            {
+              // agregarMensaje("Girando burro!");
               digitalWrite(PIN_BURRO,HIGH); //Doy contacto al burro
               delay(1000); //Espero 1 segundo que arranque
               if (verSiParo())
-              {            
+              {
                 digitalWrite(PIN_BURRO,LOW); //Corto el burro
-                //            agregarMensaje("Burro detenido");
+                // agregarMensaje("Burro detenido");
                 delay(5000); //Espero 5 segundos
                 if (verSiParo())
                 {
-                  //            agregarMensaje("Quitando cebador");
+                  // agregarMensaje("Quitando cebador");
                   myCebador.write(0); // y saco el cebador
-                  //          agregarMensaje("Liberando servo cebador");
+                  // agregarMensaje("Liberando servo cebador");
                   myCebador.detach();
                 }
               }
             }
           }
-        }        
+        }
       }
-    }  
+    }
   }
 
 
@@ -2288,41 +2286,41 @@ void arranqueManual()
   int aux_valor_acelerador = 0;
   int cebador_default = 3;
   int valor_cebador = 0;
-  int aux_valor_cebador = 0;  
+  int aux_valor_cebador = 0;
   boolean salir = false;
-  static  boolean contacto = false;
-  boolean cebador  = false;
+  static boolean contacto = false;
+  boolean cebador = false;
 
-  manualScreen(contacto); 
+  manualScreen(contacto);
 
-  digitalWrite(PIN_POWSV,HIGH);   // Enciende la potencia de los servos
+  digitalWrite(PIN_POWSV,HIGH); // Enciende la potencia de los servos
   delay(600);
   myAcelerador.attach(PIN_SERVO); // attaches the servo on pin to the servo object
-  myCebador.attach(PIN_CEBA);     // attaches the servo on pin to the servo object
-  myAcelerador.write(0);          // desacelerado
-  myCebador.write(0 );            // sin cebador
+  myCebador.attach(PIN_CEBA); // attaches the servo on pin to the servo object
+  myAcelerador.write(0); // desacelerado
+  myCebador.write(0 ); // sin cebador
 
   while( !salir)
   {
     timer.run();
     if (myTouch.dataAvailable())
-    {   
+    {
       myTouch.read();
       x=myTouch.getX();
-      y=myTouch.getY();     
+      y=myTouch.getY();
       if ( x > 0 && x < 31 && y > 210 && y < 239)
       {
-        waitForIt();    
-        salir = true; 
+        waitForIt();
+        salir = true;
       }
       else if ( x > 113 && x < 203 && y > 40 && y < 140)
       {
-        waitForIt();    
+        waitForIt();
         myGLCD.setFont(BigFont);
         if ( cebador )
         {
           myGLCD.print("OFF",130,95);
-          //        digitalWrite(PIN_CONTA,HIGH);
+          // digitalWrite(PIN_CONTA,HIGH);
           cebador = !cebador;
           myCebador.write(0);
           sliderH(180,180,0);
@@ -2331,48 +2329,48 @@ void arranqueManual()
         }
         else
         {
-          waitForIt();    
+          waitForIt();
           myGLCD.print("ON ",130,95);
-          //          digitalWrite(PIN_CONTA,HIGH);        
-          cebador = !cebador;     
+          // digitalWrite(PIN_CONTA,HIGH);
+          cebador = !cebador;
           myCebador.write(map(cebador_default,0,5,0,180));
-          sliderH(180,180,cebador_default); 
+          sliderH(180,180,cebador_default);
           valor_cebador = cebador_default;
-          aux_valor_cebador = cebador_default;          
-        }        
+          aux_valor_cebador = cebador_default;
+        }
 
       }
-      //  rectangulo(213,40,306,140);
+      // rectangulo(213,40,306,140);
       else if ( x > 213 && x < 306 && y > 40 && y < 140)
       {
         myGLCD.setColor(255,0,0);
         myGLCD.fillRoundRect(213,40,306,140);
         //Hacer girar el burro
-        digitalWrite(PIN_BURRO,HIGH);        
-        waitForIt();            
+        digitalWrite(PIN_BURRO,HIGH);
+        waitForIt();
         digitalWrite(PIN_BURRO,LOW);
         rectangulo(213,40,306,140);
         myGLCD.setFont(BigFont);
-        myGLCD.print("START",219,80);        
+        myGLCD.print("START",219,80);
 
       }
       else if ( x > 10 && x < 103 && y > 40 && y < 140)
       {
-        waitForIt();    
+        waitForIt();
         myGLCD.setFont(BigFont);
         if ( contacto )
         {
-          Serial.println("Apago");          
+          Serial.println("Apago");
           myGLCD.print("OFF",35,80);
-          digitalWrite(PIN_CONTA,HIGH);  
-          contacto = !contacto;      
+          digitalWrite(PIN_CONTA,HIGH);
+          contacto = !contacto;
         }
         else
         {
-          Serial.println("prendo");                    
+          Serial.println("prendo");
           myGLCD.print("ON ",35,80);
-          digitalWrite(PIN_CONTA,LOW);        
-          contacto = !contacto;          
+          digitalWrite(PIN_CONTA,LOW);
+          contacto = !contacto;
         }
       }
       else if (x > 25 && x < 135 && y > 170 && y < 190)
@@ -2380,41 +2378,41 @@ void arranqueManual()
         valor_acelerador = round( ( x - 30 ) / 20);
         if ( valor_acelerador != aux_valor_acelerador )
         {
-          sliderH(30,180,valor_acelerador);       
+          sliderH(30,180,valor_acelerador);
           aux_valor_acelerador = valor_acelerador;
           myAcelerador.write(map(valor_acelerador,0,5,0,180));
-        } 
+        }
       }
       else if (x > 175 && x < 285 && y > 170 && y < 190)
       { //Cebador
         valor_cebador = round( ( x - 180 ) / 20);
         if ( valor_cebador != aux_valor_cebador )
         {
-          sliderH(180,180,valor_cebador);       
-          aux_valor_cebador = valor_cebador;        
+          sliderH(180,180,valor_cebador);
+          aux_valor_cebador = valor_cebador;
           if ( aux_valor_cebador >= 1)
           {
             myGLCD.setFont(BigFont);
             myGLCD.print("ON ",130,95);
             cebador = true;
-            myCebador.write(map(valor_cebador,0,5,0,180));            
+            myCebador.write(map(valor_cebador,0,5,0,180));
           }
           else
           {
             myGLCD.setFont(BigFont);
-            myGLCD.print("OFF",130,95);            
+            myGLCD.print("OFF",130,95);
             cebador = false;
             myCebador.write(0);
           }
-        } 
-      }      
+        }
+      }
 
-    }  
-  }  
-  myAcelerador.write(0);          // desacelerado
-  myCebador.write(0 );            // sin cebador
+    }
+  }
+  myAcelerador.write(0); // desacelerado
+  myCebador.write(0 ); // sin cebador
   delay(300);
-  digitalWrite(PIN_POWSV,LOW);   // Apaga la potencia de los servos  
+  digitalWrite(PIN_POWSV,LOW); // Apaga la potencia de los servos
   myAcelerador.detach();
   myCebador.detach();
 
@@ -2440,16 +2438,16 @@ void arrancarMoto()
       {
         //Automatico
         arranqueAutomatico();
-        arrancarScreen();        
+        arrancarScreen();
       }
       else if ( ( x > 165 ) && ( x < 310) && ( y > 70) && ( y < 170 ) )
       {
         arranqueManual();
-        arrancarScreen();        
+        arrancarScreen();
       }
-    }  
+    }
   }
-  menuPrincipal(); 
+  menuPrincipal();
 }
 
 void powerScreen()
@@ -2510,8 +2508,8 @@ void rectangulo( int x1, int y1, int x2, int y2)
   myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
   myGLCD.fillRoundRect (x1, y1, x2, y2);
   myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
-  myGLCD.fillRoundRect (x1+LINE_THICK, y1+LINE_THICK, x2-LINE_THICK, y2-LINE_THICK);        
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);      
+  myGLCD.fillRoundRect (x1+LINE_THICK, y1+LINE_THICK, x2-LINE_THICK, y2-LINE_THICK);
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
 
 }
 
@@ -2522,69 +2520,69 @@ void circulo ( int x , int y , int radio )
   myGLCD.fillCircle(x,y,radio);
   myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
   myGLCD.fillCircle(x,y,radio - LINE_THICK);
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
 }
 
 void lineaCabecera()
 {
   //Linea cabecera
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
   myGLCD.drawLine(1,30,319,30);
-  myGLCD.drawLine(1,31,319,31);    
+  myGLCD.drawLine(1,31,319,31);
 
   timer.enable(timerHora);
 
-} 
+}
 
 void botonGuardar()
 {
   //Boton guardar
-  rectangulo(289,210,319,239);  
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
-  myGLCD.setFont(BigFont);  
-  myGLCD.print("S",296,218);  
+  rectangulo(289,210,319,239);
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
+  myGLCD.setFont(BigFont);
+  myGLCD.print("S",296,218);
 }
 
 void botonSiguiente()
 {
   //Boton guardar
-  rectangulo(289,210,319,239);  
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
-  myGLCD.setFont(BigFont);  
-  myGLCD.print("+",296,218);  
+  rectangulo(289,210,319,239);
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
+  myGLCD.setFont(BigFont);
+  myGLCD.print("+",296,218);
 }
 
 void botonVolver()
 {
-  rectangulo(1,210,31,239);  
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);  
-  myGLCD.setFont(BigFont);  
+  rectangulo(1,210,31,239);
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
+  myGLCD.setFont(BigFont);
   myGLCD.print("B",9,218);
 }
 void messageBox()
 {
   //Caja de mensajes
-  rectangulo(160,145,319,239); 
+  rectangulo(160,145,319,239);
 
 }
 
 void sumador(int x, int y )
 {
 
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);    
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
   myGLCD.fillRoundRect(x,y,x+20,y+20);
-  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);    
+  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
   myGLCD.drawLine(x+5,y+10,x+15,y+10);
   myGLCD.drawLine(x+10,y+5,x+10,y+15);
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);    
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
 }
 
 void restador(int x, int y)
 {
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);    
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
   myGLCD.fillRoundRect(x,y,x+20,y+20);
-  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);    
+  myGLCD.setColor(COLOR_BACK_R, COLOR_BACK_G, COLOR_BACK_B);
   myGLCD.drawLine(x+5,y+10,x+15,y+10);
-  //  myGLCD.drawLine(x+10,y+5,x+10,y+15);
-  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);      
+  // myGLCD.drawLine(x+10,y+5,x+10,y+15);
+  myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
 }
