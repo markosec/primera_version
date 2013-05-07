@@ -90,6 +90,8 @@ int KMH = 0;
 int RPM = 0;
 int NAFTA = 100;
 int TEMP = 888;
+int previa = 99;  //Marcha previa
+
 
 long guarda_odo = 300000; //Segundos para guardar el odometro... (5 min default)
 
@@ -97,6 +99,7 @@ long guarda_odo = 300000; //Segundos para guardar el odometro... (5 min default)
 int timerNafta ;
 int timerOdo;
 int timerHora;
+int timerMarcha;
 int timerEscucha;
 
 
@@ -262,10 +265,10 @@ void printRpm( int rpeme, int sentido)
   int y2 ;
   /*
 myGLCD.drawBitmap(40, 100, 10, 12, barra_verde,40,5,6);
-myGLCD.drawBitmap(80, 100, 10, 12, barra_amarilla,80,5,6);
-myGLCD.drawBitmap(120, 100, 10, 12, barra_roja,120,5,6);
-barras = 10x12
-*/
+   myGLCD.drawBitmap(80, 100, 10, 12, barra_amarilla,80,5,6);
+   myGLCD.drawBitmap(120, 100, 10, 12, barra_roja,120,5,6);
+   barras = 10x12
+   */
 
   myGLCD.setColor(255,0,0);
   if (rpeme == 10)
@@ -426,10 +429,10 @@ void imprimirHora()
   String minuto = "";
   /*
 valores = rtc.formatTime();
-hora = strtok( valores, ":");
-minuto = strtok( NULL, ":");
-hora = hora + ":" + minuto;
-*/
+   hora = strtok( valores, ":");
+   minuto = strtok( NULL, ":");
+   hora = hora + ":" + minuto;
+   */
   // Saved to time counter
   unsigned long t = millis();
 
@@ -461,13 +464,16 @@ hora = hora + ":" + minuto;
 
 }
 
+
+int baja_nafta = 500;
+
 void imprimirNafta()
 {
   int gas = 0;
   long real = 0;
 
   real = analogRead(PIN_NAFTA);
-  gas = map(real,500,0,0,10);
+  gas = map(real,baja_nafta,0,0,10);
   NAFTA = gas;
   medidorNafta(120,130,real,gas);
 }
@@ -572,12 +578,14 @@ void setup()
 
   agregarMensaje("Setup de timers..");
   timerEscucha = timer.setInterval(2000, callEscuchar);
-  timerNafta = timer.setInterval(10000, imprimirNafta);
-  timerHora = timer.setInterval(1000, imprimirHora);
-  timerOdo = timer.setInterval(guarda_odo,guardarOdometro);
+  timerNafta   = timer.setInterval(10000, imprimirNafta);
+  timerHora    = timer.setInterval(1000, imprimirHora);
+  timerOdo     = timer.setInterval(guarda_odo,guardarOdometro);
+  timerMarcha  = timer.setInterval(200, printMarcha);
   timer.disable(timerNafta);
   timer.disable(timerHora);
   timer.disable(timerOdo);
+  timer.disable(timerMarcha);  
   agregarMensaje("Fin inicializacion");
   Serial.println(F("Fin Inicializacion"));
 
@@ -590,11 +598,11 @@ void cargar()
 {
   /*
 Estructura del archivo ARCHIVO (max 80):
-largo ---- tipo ---------- significado
-9999 int tiempo acelerado (calentar)
-9999 int tiempo desacelerado (calentar)
-999 int angulo aceleracion (calentar)
-*/
+   largo ---- tipo ---------- significado
+   9999 int tiempo acelerado (calentar)
+   9999 int tiempo desacelerado (calentar)
+   999 int angulo aceleracion (calentar)
+   */
 
   word result = 0;
   if (file.exists(ARCHIVO))
@@ -693,25 +701,25 @@ void escuchar( int donde )
 {
   /*
 Protocolo de comunicacion:
-PC: HELLO
-YO: HOLA
-PC: [CODIGO1]
-YO: [RESPUESTA1]
-PC: [CODIGO2]
-YO: [RESPUESTA2]
-.
-.
-.
-PC: [CODIGON]
-YO: [RESPUESTAN]
-PC: GOODB
-YO: CHAU
-Se deben recibir de a 5 caracteres los comandos (FIJO!)
-donde: contiene desde donde se llama la funcion de escuchar (calentar, arrancar, viajar, etc)
-0 = lo op principal
-1 = calentar
-2 = viajar
-*/
+   PC: HELLO
+   YO: HOLA
+   PC: [CODIGO1]
+   YO: [RESPUESTA1]
+   PC: [CODIGO2]
+   YO: [RESPUESTA2]
+   .
+   .
+   .
+   PC: [CODIGON]
+   YO: [RESPUESTAN]
+   PC: GOODB
+   YO: CHAU
+   Se deben recibir de a 5 caracteres los comandos (FIJO!)
+   donde: contiene desde donde se llama la funcion de escuchar (calentar, arrancar, viajar, etc)
+   0 = lo op principal
+   1 = calentar
+   2 = viajar
+   */
 
 #define LC_PRINCIPAL 0
 #define LC_CALENTAR 1
@@ -864,6 +872,7 @@ void opciones()
 
   while (!salir)
   {
+    timer.run();
     if (myTouch.dataAvailable())
     {
       myTouch.read();
@@ -888,6 +897,134 @@ void opciones()
         masOpciones(); //Mas opciones
         setupScreen();
       }
+      if( x > 10 && x < 155 && y > 106 && y < 162)
+      {//Hora
+        waitForIt();
+        confArranque();
+        setupScreen();
+      }      
+      if( x > 170 && x < 320 && y > 30 && y < 96)
+      {//Nafta
+        waitForIt();
+        confNafta();
+        setupScreen();
+      }            
+    }
+  }
+}
+
+void confArranque()
+{
+
+  boolean salir            = false;
+  boolean guardado         = false;  
+  int valor_burro          = 0;
+  int aux_valor_burro      = 0;
+  int valor_cebador        = 0;
+  int aux_valor_cebador    = 0;  
+  int valor_acelerador     = 0;
+  int aux_valor_acelerador = 0;  
+  int valor_tacel          = 0;
+  int aux_valor_tacel      = 0;  
+  int valor_tdesacel       = 0;
+  int aux_valor_tdesacel   = 0;  
+
+  confArranqueScreen();
+
+  while (!salir)
+  {
+
+    timer.run();
+
+    if (myTouch.dataAvailable())
+    {
+      myTouch.read();
+      x=myTouch.getX();
+      y=myTouch.getY();
+      //Salir
+      if ( (x < 31 ) && ( y > 210 ) )
+      {
+        if (!guardado)
+        {
+          rectangulo(30,100,310,200);
+          myGLCD.setColor(255,0,0);
+          myGLCD.setFont(BigFont);
+          myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
+          myGLCD.print("NO SE GUARDARON",41,130);
+          myGLCD.print("LOS CAMBIOS",51,150);          
+          delay(1000);                  
+        }
+        salir = true;
+      }
+      //Salir
+      if ( (x > 290 ) && ( y > 210 ) )
+      {
+        //Llamar rutina de guardado
+        guardado = true;
+      }      
+      if ( (x > 10 ) && (x < 150 ) && ( y > 70 ) && ( y < 110 ) )
+      {
+        //Tiempo giro del burro...
+        valor_burro = round( ( x - 30 ) / 20);
+        if ( valor_burro != aux_valor_burro )
+        {
+          sliderH(30,90,valor_burro);
+          aux_valor_burro = valor_burro;
+          //Guardar valor burro de arranque 
+        }
+      }
+
+      if ( (x > 10 ) && (x < 150 ) && ( y > 120 ) && ( y < 160 ) )
+      {
+        //Cebador
+        valor_cebador = round( ( x - 30 ) / 20);
+        if ( valor_cebador != aux_valor_cebador )
+        {
+          sliderH(30,140,valor_cebador);
+          aux_valor_cebador = valor_cebador;
+          //Guardar valor cebador 
+
+        }
+      }
+
+      if ( (x > 160 ) && (x < 300 ) && ( y > 70 ) && ( y < 110 ) )
+      {
+        //Acelerador
+        valor_acelerador = round( ( x - 180 ) / 20);
+        if ( valor_acelerador != aux_valor_acelerador )
+        {
+          sliderH(180,90,valor_acelerador);
+          aux_valor_acelerador = valor_acelerador;
+          //Guardar valor acelerador
+
+        }
+      }      
+
+      if ( (x > 160 ) && (x < 300 ) && ( y > 120 ) && ( y < 160 ))
+      {
+        //Tiempo Acelerado
+        valor_tacel = round( ( x - 180 ) / 20);
+        if ( valor_tacel != aux_valor_tacel )
+        {
+          sliderH(180,140,valor_tacel);
+          aux_valor_tacel = valor_tacel;
+          //Guardar valor tiempo acelerado
+
+        }        
+      }            
+
+      if ( (x > 160 ) && (x < 300 ) && ( y > 170 ) && ( y < 210 ))
+      {
+        //Tiempo Desacelerado
+        valor_tdesacel = round( ( x - 180 ) / 20);
+        if ( valor_tdesacel != aux_valor_tdesacel )
+        {
+          sliderH(180,190,valor_tdesacel);
+          aux_valor_tdesacel = valor_tdesacel;
+          //Guardar valor tiempo desacelerado
+
+        }
+      }
     }
   }
 }
@@ -900,6 +1037,7 @@ void masOpciones()
 
   while (!salir)
   {
+    timer.run();
     if (myTouch.dataAvailable())
     {
       myTouch.read();
@@ -1051,15 +1189,16 @@ void setHora()
         guardado = false;
       }
 
-      if( x < 35 && y > 210 )
+      if( x < 45 && y > 210 )
       {//Volver
         if (!guardado)
         {
-          rectangulo(60,100,260,200);
+          rectangulo(30,100,310,200);
           myGLCD.setColor(255,0,0);
           myGLCD.setFont(BigFont);
           myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
-          myGLCD.print("NO SE GUARDARON LOS CAMBIOS",90,150);
+          myGLCD.print("NO SE GUARDARON",41,130);
+          myGLCD.print("LOS CAMBIOS",51,150);    
           delay(1000);
           salir = true;
         }
@@ -1158,13 +1297,16 @@ void confHoraScreen(int hh,int mm,int dia,int mes,int anio)
 
 }
 
+
+
+
 volatile long ultima;
 volatile long ultima_aux;
 volatile long aux;
 /*
 999 <----> 3600000
-0.000376 <-----> x
-*/
+ 0.000376 <-----> x
+ */
 void contar()
 {
   ultima_aux = millis() - aux; //Save delta of time since last pulse...
@@ -1354,14 +1496,14 @@ void medidorRpm(int x1, int y1, int cuanto)
       myGLCD.setColor(0, 0,0); //Negro
     else
       switch(i)
-    {
-    case 10:
-      myGLCD.setColor(255,255,0); //Amarillo
-      break;
-    case 15:
-      myGLCD.setColor(255, 0,0); //rojo
-      break;
-    }
+      {
+      case 10:
+        myGLCD.setColor(255,255,0); //Amarillo
+        break;
+      case 15:
+        myGLCD.setColor(255, 0,0); //rojo
+        break;
+      }
     myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-3);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-2);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*linea)+1,(x1+ancho-LINE_THICK),y-(i*linea)-1);
@@ -1388,14 +1530,14 @@ void medidorNafta( int x1, int y1, int real,int cuanto)
       myGLCD.setColor(0, 0,0); //Negro
     else
       switch(i)
-    {
-    case 6:
-      myGLCD.setColor(0, 255,0); //Amarillo
-      break;
-    case 3:
-      myGLCD.setColor(255, 255,0); //rojo
-      break;
-    }
+      {
+      case 6:
+        myGLCD.setColor(0, 255,0); //Amarillo
+        break;
+      case 3:
+        myGLCD.setColor(255, 255,0); //rojo
+        break;
+      }
     myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+3,x1+ancho-LINE_THICK,y-(i*10)+3);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+2,x1+ancho-LINE_THICK,y-(i*10)+2);
     myGLCD.fillRect(x1+LINE_THICK,y-(i*10)+1,x1+ancho-LINE_THICK,y-(i*10)+1);
@@ -1424,7 +1566,7 @@ void ponerVelocidad(int x, int y, int velocidad)
 
 void marcha(int x, int y, int marcha)
 {
-  static int previa = 99;
+
   if (marcha != previa)
   {
     previa = marcha;
@@ -1486,7 +1628,7 @@ void odometro(int x, int y)
 {
   String aux_str;
   int aux_mts = 0;
-  
+
   aux_mts = m_totales_f / 10000;
 
   myGLCD.setFont(BigFont);
@@ -1495,6 +1637,8 @@ void odometro(int x, int y)
   myGLCD.print(".", (x+80),y);
   myGLCD.printNumI(m_totales_i,x,y,5,'0');
 }
+
+
 
 
 void viajarScreen()
@@ -1552,6 +1696,7 @@ void debugScreen()
     }
 
   }
+  previa = 99; //Para que muestre la marcha, aunque sea la misma...
   viajarScreen();
 }
 
@@ -1562,12 +1707,15 @@ void viajar()
   int kmh_aux = 0;
 
   boolean salir = false;
+
+  previa = 99;
   viajarScreen();
 
   //Enable timers...
   timer.enable(timerNafta);
   timer.enable(timerHora);
   timer.enable(timerOdo);
+  timer.enable(timerMarcha);
 
   while( !salir)
   {
@@ -1595,8 +1743,8 @@ void viajar()
       {
         /*
 si ultima ----------> 0,376
-entonces 3600000----------> X metros
-*/
+         entonces 3600000----------> X metros
+         */
         kmh_aux = 3600000 * 0.000376 / ultima ;
         if ( kmh_aux < 300 )
           KMH = ( kmh_aux + KMH ) / 2;
@@ -1613,6 +1761,7 @@ entonces 3600000----------> X metros
   timer.disable(timerNafta);
   timer.disable(timerHora);
   timer.disable(timerOdo);
+  timer.disable(timerMarcha);
   //Save values into file before leaving screen
   guardarOdometro();
   // myTouch.read();
@@ -1854,7 +2003,7 @@ void Calentar()
 char *ftoa(char *a, double f, int precision)
 {
   long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000 };
+    0,10,100,1000,10000,100000,1000000,10000000,100000000       };
 
   char *ret = a;
   long heiltal = (long)f;
@@ -2585,4 +2734,117 @@ void restador(int x, int y)
   myGLCD.drawLine(x+5,y+10,x+15,y+10);
   // myGLCD.drawLine(x+10,y+5,x+10,y+15);
   myGLCD.setColor(COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B);
+}
+
+void confArranqueScreen()
+{
+  myGLCD.clrScr();
+  lineaCabecera();
+  botonVolver();
+  botonGuardar();
+
+  //Tiempo giro del burro...
+  sliderH(30,90,0);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(65, 140 ,255);      
+  myGLCD.print("Burro de arranque",30,60);  
+
+  //Cebador
+  sliderH(30,140,0);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(65, 140 ,255);      
+  myGLCD.print("Cebador",30,110);    
+
+
+  //Acelerador
+  sliderH(180,90,0);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(55, 140 ,255);      
+  myGLCD.print("Acelerador",180,60);      
+
+
+  //Tiempo Acelerado..
+  sliderH(180,140,2);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(55, 140 ,255);      
+  myGLCD.print("Tiempo Acelerado",180,110);      
+
+
+  //Tiempo Desacelerado..
+  sliderH(180,190,2);
+  myGLCD.setFont(SmallFont);
+  myGLCD.setColor(55, 140 ,255);      
+  myGLCD.print("Tiempo Desacelerado",180,150);        
+
+
+}
+
+
+void confNafta()
+{
+
+  boolean salir    = false;
+  boolean guardado = false;  
+
+  setupNaftaScreen();
+
+
+  while( !salir)
+  {
+    if (myTouch.dataAvailable())
+    {
+      myTouch.read();
+      x=myTouch.getX();
+      y=myTouch.getY();
+      //Salir
+      if ( (x < 31 ) && ( y > 210 ) )
+      {
+        if (!guardado)
+        {
+          rectangulo(30,100,310,200);
+          myGLCD.setColor(255,0,0);
+          myGLCD.setFont(BigFont);
+          myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
+          myGLCD.print("NO SE GUARDARON",41,130);
+          myGLCD.print("LOS CAMBIOS",51,150);          
+          delay(1000);                  
+        }
+        salir = true;
+      }
+      //Salir
+      else if ( (x > 290 ) && ( y > 210 ) )
+      {
+        //Llamar rutina de guardado
+        guardado = true;
+      }       
+      else if ( (x < 200 && x > 100 ) && ( y > 45 && y < 75 ) )
+      {
+        baja_nafta += 100;
+        myGLCD.printNumI(baja_nafta,112,95,4,'0');
+      }
+      else if ( (x < 200 && x > 100 ) && ( y > 135 && y < 175 ) )
+      {
+        baja_nafta -= 100;
+        myGLCD.printNumI(baja_nafta,112,95,4,'0');          
+      }
+    }  
+
+  }
+}
+void setupNaftaScreen()
+{
+
+  myGLCD.clrScr();
+  lineaCabecera();
+  botonVolver();
+  botonGuardar();
+
+  //Bajo nivel de nafta
+  sumador(160,65);
+  rectangulo(100,90,250,150);  
+  restador(160,155);
+  myGLCD.setFont(SevenSegNumFont);
+  myGLCD.setColor(55, 140 ,255);        
+  myGLCD.printNumI(baja_nafta,112,95,4,'0');
+
 }
