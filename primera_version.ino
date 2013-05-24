@@ -2,8 +2,10 @@
 #include <UTouch.h>
 
 #include <Servo.h>
-#include <UTFT_tinyFAT.h>
-#include <tinyFAT.h>
+//#include <UTFT_tinyFAT.h>
+//#include <tinyFAT.h>
+#include <EEPROM.h>
+#include <EEPROMAnything.h>
 #include <avr/pgmspace.h>
 #include <Wire.h>
 #include <Rtc_Pcf8563.h>
@@ -15,9 +17,6 @@
 #define Y_KMH 36
 #define X_RPM 0
 #define Y_RPM 0
-
-#define ARCHIVO "LOG.DAT"
-#define ODOMETRO "KM_LOG.DAT"
 
 //Pines de cambios....
 #define PIN_0RA 8
@@ -66,6 +65,21 @@
 #define y_hora 8
 
 
+struct config_t
+{
+  long m_totales_i;
+  long m_totales_f;
+  int  acelerado;
+  int  desacelerado;
+  int  cuanto;    
+  int  burro;
+  int  cebador;
+  int  guardado;
+  int  clave;
+} config;
+
+
+
 // Declare which fonts we will be using
 extern uint8_t SevenSegNumFont[];
 extern uint8_t BigFont[];
@@ -73,7 +87,7 @@ extern uint8_t SmallFont[];
 
 word res;
 
-UTFTtf myGLCD(ITDB32S,38,39,40,41);
+UTFT myGLCD(ITDB32S,38,39,40,41);
 UTouch myTouch(6,5,4,3,2);
 Servo myAcelerador; // Servo acelerador
 Servo myCebador; // Servo acelerador
@@ -90,10 +104,7 @@ int KMH = 0;
 int RPM = 0;
 int NAFTA = 100;
 int TEMP = 888;
-int previa = 99;  //Marcha previa
-
-
-long guarda_odo = 300000; //Segundos para guardar el odometro... (5 min default)
+int previa = 99; //Marcha previa
 
 
 int timerNafta ;
@@ -182,163 +193,6 @@ void printKmh( int velocidad )
 
   myGLCD.printNumI(velocidad, X_KMH, Y_KMH, 3, '0');
 
-}
-
-char *verboseError(byte err)
-{
-  switch (err)
-  {
-  case ERROR_MBR_READ_ERROR:
-    return "Error reading MBR";
-    break;
-  case ERROR_MBR_SIGNATURE:
-    return "MBR Signature error";
-    break;
-  case ERROR_MBR_INVALID_FS:
-    return "Unsupported filesystem";
-    break;
-  case ERROR_BOOTSEC_READ_ERROR:
-    return "Error reading Boot Sector";
-    break;
-  case ERROR_BOOTSEC_SIGNATURE:
-    return "Boot Sector Signature error";
-    break;
-  default:
-    return "Unknown error";
-    break;
-  }
-}
-// Generated from: barra verde.png
-// Time generated: 06/02/2013 11:28:51 a.m.
-// Dimensions : 17x20 pixels
-// Size : 680 Bytes
-
-prog_uint16_t barra_verde[0x78] PROGMEM ={
-  0x1782, 0x1762, 0x1723, 0x16C3, 0x1664, 0x1625, 0x15A7, 0x0D48, 0x0CC9, 0x0C6A, 0x1781, 0x1762, 0x1723, 0x16C4, 0x1665, 0x1626, // 0x0010 (16)
-  0x15A7, 0x0D48, 0x0CC9, 0x0C6A, 0x1782, 0x1762, 0x1723, 0x16C3, 0x0E65, 0x1606, 0x1587, 0x0D28, 0x0CC9, 0x0C6A, 0x1782, 0x1762, // 0x0020 (32)
-  0x1723, 0x16C4, 0x1665, 0x0E06, 0x0D87, 0x0D28, 0x0CC9, 0x0C6A, 0x1782, 0x1762, 0x1703, 0x16C4, 0x1665, 0x0DE6, 0x0D87, 0x0D28, // 0x0030 (48)
-  0x0CA9, 0x0C4B, 0x1782, 0x1762, 0x1703, 0x16A4, 0x0E45, 0x0DE6, 0x0D87, 0x0D08, 0x0CAA, 0x0C4B, 0x1782, 0x1742, 0x0F03, 0x16A4, // 0x0040 (64)
-  0x0E45, 0x0DE6, 0x0D67, 0x0D09, 0x0CAA, 0x0C4B, 0x1782, 0x1742, 0x1703, 0x16A4, 0x1645, 0x0DE6, 0x1568, 0x0D09, 0x0CAA, 0x0C4B, // 0x0050 (80)
-  0x1782, 0x1742, 0x16E3, 0x16A4, 0x0E45, 0x0DC6, 0x0D68, 0x0D09, 0x0C8A, 0x0C2B, 0x1782, 0x1743, 0x16E3, 0x0EA4, 0x0E25, 0x0DC6, // 0x0060 (96)
-  0x0D68, 0x0CE9, 0x0C8A, 0x0C2B, 0x1762, 0x1743, 0x16E3, 0x0E84, 0x0E26, 0x0DC6, 0x0D48, 0x0CE9, 0x0C8A, 0x0C2B, 0x1782, 0x1723, // 0x0070 (112)
-};
-
-
-prog_uint16_t barra_amarilla[0x78] PROGMEM ={
-  0xEF82, 0xE762, 0xDF22, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC7, 0xEF82, 0xE762, 0xDF22, 0xD723, 0xCEE3, 0xBEA4, // 0x0010 (16)
-  0xB665, 0xAE45, 0x9E06, 0x8DC6, 0xEF82, 0xE762, 0xDF22, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC6, 0xEF82, 0xE762, // 0x0020 (32)
-  0xDF42, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE65, 0x9E06, 0x8DC6, 0xEF82, 0xE762, 0xDF42, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, // 0x0030 (48)
-  0x9E06, 0x8DC6, 0xEF82, 0xE762, 0xDF22, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC6, 0xEF82, 0xE762, 0xDF22, 0xD723, // 0x0040 (64)
-  0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC6, 0xEF82, 0xE762, 0xDF22, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC6, // 0x0050 (80)
-  0xEF82, 0xE762, 0xDF43, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC6, 0xEF82, 0xE762, 0xDF43, 0xD723, 0xCEE3, 0xBEA4, // 0x0060 (96)
-  0xB685, 0xAE65, 0x9E26, 0x8DC7, 0xEF82, 0xE762, 0xDF43, 0xD723, 0xCEE3, 0xBEA4, 0xB665, 0xAE45, 0x9E06, 0x8DC6, 0xEF82, 0xE762, // 0x0070 (112)
-};
-
-
-prog_uint16_t barra_roja[0x78] PROGMEM ={
-  0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB928, 0xA168, 0x91A9, 0x7A09, 0x6A2A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB928, 0xA168, // 0x0010 (16)
-  0x91A9, 0x7A09, 0x6A2A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB928, 0xA168, 0x91A9, 0x7A09, 0x6A2A, 0x5A8B, 0xF086, 0xE0A6, // 0x0020 (32)
-  0xD8C6, 0xC907, 0xB928, 0xA168, 0x91A9, 0x7A09, 0x6A4A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB928, 0xA168, 0x91A9, 0x7A09, // 0x0030 (48)
-  0x6A2A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB928, 0xA168, 0x91A9, 0x79E9, 0x6A2A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, // 0x0040 (64)
-  0xB928, 0xA168, 0x91A9, 0x79E9, 0x6A4A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB928, 0xA168, 0x91A9, 0x79E9, 0x6A2A, 0x526B, // 0x0050 (80)
-  0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB927, 0xA168, 0x91A9, 0x7A09, 0x6A4A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB927, 0xA168, // 0x0060 (96)
-  0x91A9, 0x7A09, 0x6A2A, 0x526B, 0xF086, 0xE0A6, 0xD8C6, 0xC907, 0xB927, 0xA168, 0x91A9, 0x7A09, 0x6A4A, 0x526B, 0xF086, 0xE0A6, // 0x0070 (112)
-};
-
-prog_uint16_t barra_negra[0x78] PROGMEM ={
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0010 (16)
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0020 (32)
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0030 (48)
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0040 (64)
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0050 (80)
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0060 (96)
-  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x0070 (112)
-};
-
-
-
-void printRpm( int rpeme, int sentido)
-{
-  int x1 = 1;
-  int y1 = 25;
-  int x2 = 40;
-  int y2 ;
-  /*
-myGLCD.drawBitmap(40, 100, 10, 12, barra_verde,40,5,6);
-   myGLCD.drawBitmap(80, 100, 10, 12, barra_amarilla,80,5,6);
-   myGLCD.drawBitmap(120, 100, 10, 12, barra_roja,120,5,6);
-   barras = 10x12
-   */
-
-  myGLCD.setColor(255,0,0);
-  if (rpeme == 10)
-  {
-    myGLCD.drawBitmap(68, 177, 10, 12, barra_roja,90,5,6);
-  }
-
-  if (rpeme == 9)
-  {
-    myGLCD.drawBitmap(57, 177, 10, 12, barra_roja,85,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(70, 177, 10, 12, barra_negra,90,5,6);
-    }
-  }
-  if (rpeme == 8)
-  {
-    myGLCD.drawBitmap(46, 178, 10, 12, barra_amarilla,80,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(57, 177, 10, 12, barra_negra,85,5,6);
-    }
-  }
-  if (rpeme == 7)
-  {
-    myGLCD.drawBitmap(35, 180, 10, 12, barra_amarilla,70,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(46, 178, 10, 12, barra_negra,80,5,6);
-    }
-  }
-  if (rpeme == 6)
-  {
-    myGLCD.drawBitmap(24, 184, 10, 12, barra_amarilla,62,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(35, 180, 10, 12, barra_negra,70,5,6);
-    }
-  }
-  if (rpeme == 5)
-  {
-    myGLCD.drawBitmap(15, 190, 10, 12, barra_verde,43,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(24, 184, 10, 12, barra_negra,62,5,6);
-    }
-  }
-  if (rpeme == 4)
-  {
-    myGLCD.drawBitmap(9, 197, 10, 12, barra_verde,25,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(15, 190, 10, 12, barra_negra,43,5,6);
-    }
-  }
-  if (rpeme == 3)
-  {
-    myGLCD.drawBitmap(5, 208, 10, 12, barra_verde,15,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(9, 197, 10, 12, barra_negra,25,5,6);
-    }
-  }
-  if (rpeme == 2)
-  {
-    myGLCD.drawBitmap(2, 218, 10, 12, barra_verde,10,5,6);
-    if (sentido < 0){
-      myGLCD.drawBitmap(5, 208, 10, 12, barra_negra,15,5,6);
-    }
-  }
-  if (rpeme == 1)
-  {
-    myGLCD.drawBitmap(1, 228, 10, 12, barra_verde);
-    if (sentido < 0){
-      myGLCD.drawBitmap(2, 218, 10, 12, barra_negra,10,5,6);
-    }
-  }
 }
 
 int linea_mensaje = 50;
@@ -560,32 +414,20 @@ void setup()
   pinMode(PIN_NAFTA, INPUT);
 
   attachInterrupt(4, contar, RISING); //PIN_RPM
-
-  agregarMensaje("Iniciando SD...");
-  res = file.initFAT(SPISPEED_HIGH);
-  delay(100);
-  if ( res == NO_ERROR )
-    agregarMensaje("SD iniciada");
-  else
-  {
-    agregarMensaje(verboseError(res));
-    Serial.println(verboseError(res));
-  }
-
   agregarMensaje("Cargando preferencias...");
   cargar();
 
 
   agregarMensaje("Setup de timers..");
   timerEscucha = timer.setInterval(2000, callEscuchar);
-  timerNafta   = timer.setInterval(10000, imprimirNafta);
-  timerHora    = timer.setInterval(1000, imprimirHora);
-  timerOdo     = timer.setInterval(guarda_odo,guardarOdometro);
-  timerMarcha  = timer.setInterval(200, printMarcha);
+  timerNafta = timer.setInterval(10000, imprimirNafta);
+  timerHora = timer.setInterval(1000, imprimirHora);
+  timerOdo = timer.setInterval(config.guardado,guardarOdometro);
+  timerMarcha = timer.setInterval(200, printMarcha);
   timer.disable(timerNafta);
   timer.disable(timerHora);
   timer.disable(timerOdo);
-  timer.disable(timerMarcha);  
+  timer.disable(timerMarcha);
   agregarMensaje("Fin inicializacion");
   Serial.println(F("Fin Inicializacion"));
 
@@ -596,78 +438,7 @@ void setup()
 
 void cargar()
 {
-  /*
-Estructura del archivo ARCHIVO (max 80):
-   largo ---- tipo ---------- significado
-   9999 int tiempo acelerado (calentar)
-   9999 int tiempo desacelerado (calentar)
-   999 int angulo aceleracion (calentar)
-   */
-
-  word result = 0;
-  if (file.exists(ARCHIVO))
-  {
-
-    // Carga los valores desde el archivo
-    res=file.openFile(ARCHIVO, FILEMODE_TEXT_READ);
-    if (res==NO_ERROR)
-    {
-
-      result=file.readLn(textBuffer, 80);
-      if ((result!=EOF) and (result!=FILE_IS_EMPTY))
-      {
-        acelerado = atoi(textBuffer);
-
-      }
-      result=file.readLn(textBuffer, 80);
-      if ((result!=EOF) and (result!=FILE_IS_EMPTY))
-      {
-        desacelerado = atoi(textBuffer);
-      }
-      result=file.readLn(textBuffer, 80);
-      if ((result!=EOF) and (result!=FILE_IS_EMPTY))
-      {
-        cuanto = atoi(textBuffer);
-      }
-      file.closeFile();
-    }
-  }
-  else
-  {
-  }
-  if ( file.exists(ODOMETRO) )
-  {
-    res = file.openFile(ODOMETRO, FILEMODE_TEXT_READ);
-    if (res == NO_ERROR)
-    {
-      result = file.readLn(textBuffer, 80);
-      if ((result!=EOF) and (result!=FILE_IS_EMPTY))
-      {
-        m_totales_f = atoi(textBuffer);
-        Serial.print(F("m_totales_f: "));
-        Serial.println(textBuffer);
-
-        result = file.readLn(textBuffer, 80);
-        if ( (result!=FILE_IS_EMPTY) or (result == EOF))
-        {
-          Serial.print(F("lei del odometro2:"));
-          Serial.println(textBuffer);
-          m_totales_i = atol(textBuffer);
-          Serial.print(F("m_totales_i: "));
-          Serial.println(textBuffer);
-        }
-        else
-        {
-          Serial.print(F("Error al leer odometro enteros: "));
-          Serial.println(textBuffer);
-          Serial.print(F("El error fue:"));
-          Serial.println(result,HEX);
-        }
-      }
-      file.closeFile();
-    }
-
-  }
+ EEPROM_readAnything(0, config);
 }
 
 void waitForIt()
@@ -902,13 +673,13 @@ void opciones()
         waitForIt();
         confArranque();
         setupScreen();
-      }      
+      }
       if( x > 170 && x < 320 && y > 30 && y < 96)
       {//Nafta
         waitForIt();
         confNafta();
         setupScreen();
-      }            
+      }
     }
   }
 }
@@ -916,18 +687,18 @@ void opciones()
 void confArranque()
 {
 
-  boolean salir            = false;
-  boolean guardado         = false;  
-  int valor_burro          = 0;
-  int aux_valor_burro      = 0;
-  int valor_cebador        = 0;
-  int aux_valor_cebador    = 0;  
-  int valor_acelerador     = 0;
-  int aux_valor_acelerador = 0;  
-  int valor_tacel          = 0;
-  int aux_valor_tacel      = 0;  
-  int valor_tdesacel       = 0;
-  int aux_valor_tdesacel   = 0;  
+  boolean salir = false;
+  boolean guardado = false;
+  int valor_burro = 0;
+  int aux_valor_burro = 0;
+  int valor_cebador = 0;
+  int aux_valor_cebador = 0;
+  int valor_acelerador = 0;
+  int aux_valor_acelerador = 0;
+  int valor_tacel = 0;
+  int aux_valor_tacel = 0;
+  int valor_tdesacel = 0;
+  int aux_valor_tdesacel = 0;
 
   confArranqueScreen();
 
@@ -951,8 +722,8 @@ void confArranque()
           myGLCD.setFont(BigFont);
           myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
           myGLCD.print("NO SE GUARDARON",41,130);
-          myGLCD.print("LOS CAMBIOS",51,150);          
-          delay(1000);                  
+          myGLCD.print("LOS CAMBIOS",51,150);
+          delay(1000);
         }
         salir = true;
       }
@@ -961,7 +732,7 @@ void confArranque()
       {
         //Llamar rutina de guardado
         guardado = true;
-      }      
+      }
       if ( (x > 10 ) && (x < 150 ) && ( y > 70 ) && ( y < 110 ) )
       {
         //Tiempo giro del burro...
@@ -970,7 +741,8 @@ void confArranque()
         {
           sliderH(30,90,valor_burro);
           aux_valor_burro = valor_burro;
-          //Guardar valor burro de arranque 
+          //Guardar valor burro de arranque
+          config.burro = map(valor_burro,0,5,500,2500); 
         }
       }
 
@@ -982,8 +754,8 @@ void confArranque()
         {
           sliderH(30,140,valor_cebador);
           aux_valor_cebador = valor_cebador;
-          //Guardar valor cebador 
-
+          //Guardar valor cebador
+          config.cebador = map(valor_burro,0,5,500,2500);
         }
       }
 
@@ -998,7 +770,7 @@ void confArranque()
           //Guardar valor acelerador
 
         }
-      }      
+      }
 
       if ( (x > 160 ) && (x < 300 ) && ( y > 120 ) && ( y < 160 ))
       {
@@ -1010,8 +782,8 @@ void confArranque()
           aux_valor_tacel = valor_tacel;
           //Guardar valor tiempo acelerado
 
-        }        
-      }            
+        }
+      }
 
       if ( (x > 160 ) && (x < 300 ) && ( y > 170 ) && ( y < 210 ))
       {
@@ -1198,7 +970,7 @@ void setHora()
           myGLCD.setFont(BigFont);
           myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
           myGLCD.print("NO SE GUARDARON",41,130);
-          myGLCD.print("LOS CAMBIOS",51,150);    
+          myGLCD.print("LOS CAMBIOS",51,150);
           delay(1000);
           salir = true;
         }
@@ -1323,156 +1095,15 @@ void contar()
   }
 }
 
-void ponerEnHora()
-{
 
-  // rtc.setTime(18, 02, 00);
-  int hora = 0;
-  int minuto = 0;
-  char *valores;
-
-  boolean salir = false;
-  int x1 = 0;
-  int y1 = 0;
-  myGLCD.clrScr();
-
-  res = myGLCD.loadBitmap(0,0,320,240,"hora.raw");
-
-  if (res != 0)
-  {
-    myGLCD.print("error loading hora.raw",0,0);
-    return;
-  }
-
-  while(!salir)
-  {
-    myGLCD.printNumI(hora,90,110,2,'0');
-    myGLCD.printNumI(minuto,203,110,2,'0');
-    if (myTouch.dataAvailable())
-    {
-      myTouch.read();
-      x1=myTouch.getX();
-      y1=myTouch.getY();
-      waitForIt();
-      if (x1 > 85 && x1 < 150)
-      {
-        if ( y1 > 35 && y1 < 90 )
-        {
-          // hora arriba
-          hora ++;
-          if (hora > 23) hora = 0;
-        }
-        else if ( y1 > 143 && y1 < 198 )
-        {
-          // hora abajo
-          hora --;
-          if (hora < 0) hora = 23;
-        }
-      }
-      else
-        if ( x1 > 199 && x1 < 263 )
-        {
-
-          if ( y1 > 35 && y1 < 90 )
-          {
-            // minuto arriba
-            minuto++;
-            if ( minuto > 59 )
-            {
-              minuto = 0;
-              hora++;
-            }
-          }
-          else if ( y1 > 143 && y1 < 198 )
-          {
-            // minuto abajo
-            minuto--;
-            if ( minuto < 0 )
-            {
-              minuto = 59;
-              hora--;
-            }
-          }
-        }
-        else
-          if ( x1 < 60 )
-          {
-            if ( y1 < 50 )
-            {
-              //Boton salir
-              return;
-            }
-            else if ( y1 > 190 )
-            {
-              //Boton guardar
-              rtc.setTime(hora, minuto, 00);
-              return;
-            }
-          }
-    }
-  }
-}
 
 
 
 void guardarOdometro()
 {
-  if ( m_totales_i == 0)
-  {
-    agregarMensaje("No hay valores para guardar");
-    return;
-  }
-  if ( file.exists(ODOMETRO) )
-  {
-    res = file.delFile(ODOMETRO);
-    if (res)
-    {
-      agregarMensaje("Borrado archivo ODOMETRO");
-    }
-    else
-    {
-      agregarMensaje("No se borra archivo ODOMETRO");
-      return;
-    }
-  }
-  if (file.create(ODOMETRO))
-  {
-    res=file.openFile(ODOMETRO, FILEMODE_TEXT_WRITE);
-  }
-  else
-  {
-    agregarMensaje("Error creando ODOMETRO");
-    return;
-  }
-  if (res == NO_ERROR)
-  {
-    word result=0;
-    itoa(m_totales_f,textBuffer,10);
-    result=file.writeLn(textBuffer);
-    if ( result == NO_ERROR )
-    {
-      ltoa(m_totales_i,textBuffer,10);
-      result = file.writeLn(textBuffer);
-    }
-
-    if (result == NO_ERROR)
-    {
-      agregarMensaje("Odometro guardado.");
-    }
-    else
-    {
-      agregarMensaje("Error al guardar odometro");
-      return;
-    }
-
-    file.closeFile();
-    return;
-
-  }
-  else
-  {
-    return;
-  }
+  config.m_totales_f = m_totales_f;
+  config.m_totales_i = m_totales_i;
+  EEPROM_writeAnything(0, config);
 }
 
 
@@ -1776,255 +1407,6 @@ void Arrancar()
 
 
 }
-
-
-boolean guardarCalentar()
-{
-  agregarMensaje("Saving presets...");
-  if ( file.exists(ARCHIVO) )
-  {
-    noInterrupts();
-    res = file.delFile(ARCHIVO);
-    interrupts();
-    if (res)
-    {
-      agregarMensaje("File erased");
-    }
-    else
-    {
-      agregarMensaje("Error deleting ARCHIVO");
-      return false;
-    }
-  }
-  noInterrupts();
-  if (file.create(ARCHIVO))
-  {
-    res=file.openFile(ARCHIVO, FILEMODE_TEXT_WRITE);
-  }
-  else
-  {
-    agregarMensaje("Error creating ARCHIVO");
-    return false;
-  }
-  interrupts();
-  if (res == NO_ERROR)
-  {
-
-    noInterrupts();
-    word result=0;
-    itoa(acelerado,textBuffer,10);
-    result=file.writeLn(textBuffer);
-    if (result == NO_ERROR)
-    {
-      itoa(desacelerado,textBuffer,10);
-      result=file.writeLn(textBuffer);
-      if (result == NO_ERROR)
-      {
-        itoa(cuanto,textBuffer,10);
-        result=file.writeLn(textBuffer);
-      }
-    }
-
-    interrupts();
-    if (result == NO_ERROR)
-    {
-      agregarMensaje("Presets saved");
-      return true;
-    }
-    else
-    {
-      agregarMensaje("Error saving presets");
-      return false;
-    }
-    noInterrupts();
-    file.closeFile();
-    interrupts();
-  }
-  else
-    return false;
-}
-
-
-void Calentar()
-{
-  int pos = 180;
-  int x1 = 10;
-  int x2 = 90;
-  int x3 = 166;
-  int x4 = 242;
-
-  int y1 = 36;
-  int y2 = 138;
-
-  int flecha_alto = 66;
-  int flecha_ancho = 66;
-
-  int parar_alto = 66;
-  int parar_ancho = 66;
-
-  long antes = 0;
-  long ahora = 0;
-
-  if (!myAcelerador.attached())
-  {
-    agregarMensaje("Tomando control del acelerador");
-    myAcelerador.attach(PIN_SERVO);
-
-  }
-
-  myGLCD.clrScr();
-
-  res = myGLCD.loadBitmap(0,0,320,240,"calentar.raw");
-
-  if (res != 0)
-  {
-    myGLCD.print("error loading calentar.raw",0,0);
-    agregarMensaje("Error loading calentar.raw");
-
-  }
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.setFont(BigFont);
-  myGLCD.setBackColor(0, 0, 0);
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.printNumI(acelerado,x2,110,4,'0');
-  myGLCD.printNumI(cuanto,x3,110,3,'0');
-  myGLCD.printNumI(desacelerado,x4,110,4,'0');
-  while(1)
-  {
-    timer.run();
-
-    if (myTouch.dataAvailable())
-    {
-      myTouch.read();
-      x = myTouch.getX();
-      y = myTouch.getY();
-      if ( ( x >= x2) && (x <= (x2+flecha_ancho) ) )
-      {
-        waitForIt();
-        if ( ( y >= y1) && (y <= (y1+flecha_alto) ) )
-        {
-          if ( acelerado <= 6000 )
-            acelerado = acelerado + 250;
-        }
-        else if ( ( y >= y2 ) && (y <= (y2+flecha_alto) ) )
-        {
-          if ( acelerado >= 500 )
-            acelerado = acelerado - 250;
-        }
-        myGLCD.setBackColor(0, 0, 0);
-        myGLCD.setColor(255, 255, 255);
-        myGLCD.printNumI(acelerado,x2,110,4,'0');
-      }
-
-      if ( ( x >= x3) && (x <= (x3+flecha_ancho) ) )
-      {
-        waitForIt();
-        if ( ( y >= y1) && (y <= (y1+flecha_alto) ) )
-        {
-          if ( cuanto <= 170 )
-            cuanto = cuanto + 10;
-        }
-        else if ( ( y >= y2 ) && (y <= (y2+flecha_alto) ) )
-        {
-          if ( cuanto >= 20 )
-            cuanto = cuanto - 10;
-        }
-        myGLCD.setBackColor(0, 0, 0);
-        myGLCD.setColor(255, 255, 255);
-        myGLCD.printNumI(cuanto,x3,110,3,'0');
-      }
-      if ( ( x >= x4) && (x <= (x4+flecha_ancho) ) )
-      {
-        waitForIt();
-        if ( ( y >= y1) && (y <= (y1+flecha_alto) ) )
-        {
-          if ( desacelerado < 6000 )
-            desacelerado = desacelerado + 250;
-        }
-        else if ( ( y >= y2 ) && (y <= (y2+flecha_alto) ) )
-        {
-          if ( desacelerado >= 750 )
-            desacelerado = desacelerado - 250;
-        }
-        myGLCD.setBackColor(0, 0, 0);
-        myGLCD.setColor(255, 255, 255);
-        myGLCD.printNumI(desacelerado,x4,110,4,'0');
-      }
-
-      if ( ( x >= x1) && (x <= (x1+parar_ancho) ) )
-      {
-        waitForIt();
-        if ( ( y >= y2) && (y <= (y2+parar_alto) ) )
-        {
-          agregarMensaje("Fin calentamiento...");
-          myAcelerador.write(0); // desacelerado por las dudas
-          myAcelerador.detach(); // Soltar acelerador
-          break;
-        }
-      }
-    }
-
-    //Movimiento del acelerador
-    ahora = millis();
-    if ( pos == 0)
-    {
-      if ( (ahora - antes) >= desacelerado )
-      {
-        pos = cuanto;
-
-        res = myGLCD.loadBitmap(1,1,60,55,"exclama.raw");
-
-        if (res != 0)
-        {
-          myGLCD.print("error exclama.raw",0,0);
-          agregarMensaje("Error loading exclama.raw");
-        }
-        antes = ahora;
-      }
-    }
-    else
-    {
-      if ( (ahora - antes) >= acelerado )
-      {
-        pos = 0;
-        myGLCD.setColor(0,0,0);
-        myGLCD.fillRect(1,1,61,56);
-        antes = ahora;
-      }
-    }
-    myAcelerador.write(pos); //
-  }
-
-  //Save values into file before leaving screen
-  guardarCalentar();
-  menuPrincipal();
-}
-
-char *ftoa(char *a, double f, int precision)
-{
-  long p[] = {
-    0,10,100,1000,10000,100000,1000000,10000000,100000000       };
-
-  char *ret = a;
-  long heiltal = (long)f;
-  itoa(heiltal, a, 10);
-  while (*a != '\0') a++;
-  *a++ = '.';
-  long desimal = abs((long)((f - heiltal) * p[precision]));
-  itoa(desimal, a, 10);
-  return ret;
-}
-
-void strcat(char* original, char appended)
-{
-  while (*original++)
-    ;
-  *original++ = appended;
-  if (appended)
-    *original = '\0';
-}
-
-
 
 void loginScreen()
 {
@@ -2395,15 +1777,18 @@ void arranqueAutomatico()
           if (verSiParo())
           {
             // agregarMensaje("Cebando el motor...");
-            myCebador.write(300);
+            myCebador.write(config.cebador);
             //agregarMensaje("Acelerando...");
-            myAcelerador.write(90); //Acelero
-            delay(300); //espero al servo
+            myAcelerador.write(config.cuanto); //Acelero
+            delay(300); //espero a los servos
             if (verSiParo())
             {
               // agregarMensaje("Girando burro!");
               digitalWrite(PIN_BURRO,HIGH); //Doy contacto al burro
-              delay(1000); //Espero 1 segundo que arranque
+              ///////////////////////////////////////////////
+//              Esto va por codigo!!! config.burro?
+              delay(config.burro); //Espero que arranque
+              ///////////////////////////////////////////////
               if (verSiParo())
               {
                 digitalWrite(PIN_BURRO,LOW); //Corto el burro
@@ -2746,35 +2131,35 @@ void confArranqueScreen()
   //Tiempo giro del burro...
   sliderH(30,90,0);
   myGLCD.setFont(SmallFont);
-  myGLCD.setColor(65, 140 ,255);      
-  myGLCD.print("Burro de arranque",30,60);  
+  myGLCD.setColor(65, 140 ,255);
+  myGLCD.print("Burro de arranque",30,60);
 
   //Cebador
   sliderH(30,140,0);
   myGLCD.setFont(SmallFont);
-  myGLCD.setColor(65, 140 ,255);      
-  myGLCD.print("Cebador",30,110);    
+  myGLCD.setColor(65, 140 ,255);
+  myGLCD.print("Cebador",30,110);
 
 
   //Acelerador
   sliderH(180,90,0);
   myGLCD.setFont(SmallFont);
-  myGLCD.setColor(55, 140 ,255);      
-  myGLCD.print("Acelerador",180,60);      
+  myGLCD.setColor(55, 140 ,255);
+  myGLCD.print("Acelerador",180,60);
 
 
   //Tiempo Acelerado..
   sliderH(180,140,2);
   myGLCD.setFont(SmallFont);
-  myGLCD.setColor(55, 140 ,255);      
-  myGLCD.print("Tiempo Acelerado",180,110);      
+  myGLCD.setColor(55, 140 ,255);
+  myGLCD.print("Tiempo Acelerado",180,110);
 
 
   //Tiempo Desacelerado..
   sliderH(180,190,2);
   myGLCD.setFont(SmallFont);
-  myGLCD.setColor(55, 140 ,255);      
-  myGLCD.print("Tiempo Desacelerado",180,150);        
+  myGLCD.setColor(55, 140 ,255);
+  myGLCD.print("Tiempo Desacelerado",180,150);
 
 
 }
@@ -2783,8 +2168,8 @@ void confArranqueScreen()
 void confNafta()
 {
 
-  boolean salir    = false;
-  boolean guardado = false;  
+  boolean salir = false;
+  boolean guardado = false;
 
   setupNaftaScreen();
 
@@ -2806,8 +2191,8 @@ void confNafta()
           myGLCD.setFont(BigFont);
           myGLCD.setBackColor(COLOR_BACK_R,COLOR_BACK_G,COLOR_BACK_B);
           myGLCD.print("NO SE GUARDARON",41,130);
-          myGLCD.print("LOS CAMBIOS",51,150);          
-          delay(1000);                  
+          myGLCD.print("LOS CAMBIOS",51,150);
+          delay(1000);
         }
         salir = true;
       }
@@ -2816,7 +2201,7 @@ void confNafta()
       {
         //Llamar rutina de guardado
         guardado = true;
-      }       
+      }
       else if ( (x < 200 && x > 100 ) && ( y > 45 && y < 75 ) )
       {
         baja_nafta += 100;
@@ -2825,9 +2210,9 @@ void confNafta()
       else if ( (x < 200 && x > 100 ) && ( y > 135 && y < 175 ) )
       {
         baja_nafta -= 100;
-        myGLCD.printNumI(baja_nafta,112,95,4,'0');          
+        myGLCD.printNumI(baja_nafta,112,95,4,'0');
       }
-    }  
+    }
 
   }
 }
@@ -2841,10 +2226,11 @@ void setupNaftaScreen()
 
   //Bajo nivel de nafta
   sumador(160,65);
-  rectangulo(100,90,250,150);  
+  rectangulo(100,90,250,150);
   restador(160,155);
   myGLCD.setFont(SevenSegNumFont);
-  myGLCD.setColor(55, 140 ,255);        
+  myGLCD.setColor(55, 140 ,255);
   myGLCD.printNumI(baja_nafta,112,95,4,'0');
 
 }
+
