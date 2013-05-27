@@ -27,7 +27,7 @@
 #define PIN_5TA 13
 
 //Pin del sensor de rpm (cooler)...
-#define PIN_RPM 19
+#define PIN_RPM 18
 
 //Pines del relay del burro de arranque y servo acelerador
 
@@ -69,9 +69,9 @@ struct config_t
 {
   long m_totales_i;
   long m_totales_f;
-  int  acelerado;
-  int  desacelerado;
-  int  cuanto;    
+  int  acelerador;
+  int  cuanto_acel;    
+  int  cuanto_desacel;   
   int  burro;
   int  cebador;
   int  guardado;
@@ -96,6 +96,7 @@ Servo myCebador; // Servo acelerador
 Rtc_Pcf8563 rtc;
 SimpleTimer timer;
 
+boolean contacto = false;
 
 unsigned long ahora;
 unsigned long antes;
@@ -413,7 +414,7 @@ void setup()
 
   pinMode(PIN_NAFTA, INPUT);
 
-  attachInterrupt(4, contar, RISING); //PIN_RPM
+  attachInterrupt(5, contar, RISING); //PIN_RPM
   agregarMensaje("Cargando preferencias...");
   cargar();
 
@@ -438,7 +439,7 @@ void setup()
 
 void cargar()
 {
- EEPROM_readAnything(0, config);
+  EEPROM_readAnything(0, config);
 }
 
 void waitForIt()
@@ -732,6 +733,7 @@ void confArranque()
       {
         //Llamar rutina de guardado
         guardado = true;
+        EEPROM_writeAnything(0, config);
       }
       if ( (x > 10 ) && (x < 150 ) && ( y > 70 ) && ( y < 110 ) )
       {
@@ -755,7 +757,7 @@ void confArranque()
           sliderH(30,140,valor_cebador);
           aux_valor_cebador = valor_cebador;
           //Guardar valor cebador
-          config.cebador = map(valor_burro,0,5,500,2500);
+          config.cebador = map(valor_cebador,0,5,500,2500);
         }
       }
 
@@ -768,7 +770,7 @@ void confArranque()
           sliderH(180,90,valor_acelerador);
           aux_valor_acelerador = valor_acelerador;
           //Guardar valor acelerador
-
+          config.acelerador = map(valor_acelerador,0,5,70,120);
         }
       }
 
@@ -781,7 +783,7 @@ void confArranque()
           sliderH(180,140,valor_tacel);
           aux_valor_tacel = valor_tacel;
           //Guardar valor tiempo acelerado
-
+          config.cuanto_acel = map(valor_tacel,0,5,500,2500);
         }
       }
 
@@ -794,7 +796,7 @@ void confArranque()
           sliderH(180,190,valor_tdesacel);
           aux_valor_tdesacel = valor_tdesacel;
           //Guardar valor tiempo desacelerado
-
+          config.cuanto_desacel = map(valor_tdesacel,0,5,500,2500);
         }
       }
     }
@@ -1617,7 +1619,6 @@ void updateStr(int val)
 
 
 boolean encendido = false;
-boolean contacto = false;
 
 void girarBurro()
 {
@@ -1706,10 +1707,10 @@ void manualScreen( boolean conta)
   //Contacto
   rectangulo(10,40,103,140);
   myGLCD.setFont(BigFont);
-  if (!conta)
-    myGLCD.print("OFF",35,80);
-  else
+  if (conta)
     myGLCD.print("ON ",35,80);
+  else
+    myGLCD.print("OFF",35,80);
 
   //CEBADOR
   rectangulo(113,40,203,140);
@@ -1779,14 +1780,14 @@ void arranqueAutomatico()
             // agregarMensaje("Cebando el motor...");
             myCebador.write(config.cebador);
             //agregarMensaje("Acelerando...");
-            myAcelerador.write(config.cuanto); //Acelero
+            myAcelerador.write(config.acelerador); //Acelero
             delay(300); //espero a los servos
             if (verSiParo())
             {
               // agregarMensaje("Girando burro!");
               digitalWrite(PIN_BURRO,HIGH); //Doy contacto al burro
               ///////////////////////////////////////////////
-//              Esto va por codigo!!! config.burro?
+              //              Esto va por codigo!!! config.burro?
               delay(config.burro); //Espero que arranque
               ///////////////////////////////////////////////
               if (verSiParo())
@@ -1822,7 +1823,7 @@ void arranqueManual()
   int valor_cebador = 0;
   int aux_valor_cebador = 0;
   boolean salir = false;
-  static boolean contacto = false;
+
   boolean cebador = false;
 
   manualScreen(contacto);
@@ -1855,7 +1856,6 @@ void arranqueManual()
         {
           myGLCD.print("OFF",130,95);
           // digitalWrite(PIN_CONTA,HIGH);
-          cebador = !cebador;
           myCebador.write(0);
           sliderH(180,180,0);
           valor_cebador = 0;
@@ -1865,14 +1865,12 @@ void arranqueManual()
         {
           waitForIt();
           myGLCD.print("ON ",130,95);
-          // digitalWrite(PIN_CONTA,HIGH);
-          cebador = !cebador;
           myCebador.write(map(cebador_default,0,5,0,180));
           sliderH(180,180,cebador_default);
           valor_cebador = cebador_default;
           aux_valor_cebador = cebador_default;
         }
-
+        cebador = !cebador;        
       }
       // rectangulo(213,40,306,140);
       else if ( x > 213 && x < 306 && y > 40 && y < 140)
@@ -1886,7 +1884,6 @@ void arranqueManual()
         rectangulo(213,40,306,140);
         myGLCD.setFont(BigFont);
         myGLCD.print("START",219,80);
-
       }
       else if ( x > 10 && x < 103 && y > 40 && y < 140)
       {
@@ -1897,15 +1894,14 @@ void arranqueManual()
           Serial.println("Apago");
           myGLCD.print("OFF",35,80);
           digitalWrite(PIN_CONTA,HIGH);
-          contacto = !contacto;
         }
         else
         {
           Serial.println("prendo");
           myGLCD.print("ON ",35,80);
           digitalWrite(PIN_CONTA,LOW);
-          contacto = !contacto;
         }
+        contacto = !contacto;        
       }
       else if (x > 25 && x < 135 && y > 170 && y < 190)
       { //Acelerador
@@ -2127,40 +2123,43 @@ void confArranqueScreen()
   lineaCabecera();
   botonVolver();
   botonGuardar();
+  int aux = 0;
+
+  aux = map(config.burro,500,2500,0,5); 
 
   //Tiempo giro del burro...
-  sliderH(30,90,0);
+  sliderH(30,90,aux);
   myGLCD.setFont(SmallFont);
   myGLCD.setColor(65, 140 ,255);
   myGLCD.print("Burro de arranque",30,60);
 
+  aux = map(config.cebador,500,2500,0,5); 
   //Cebador
-  sliderH(30,140,0);
+  sliderH(30,140,aux);
   myGLCD.setFont(SmallFont);
   myGLCD.setColor(65, 140 ,255);
   myGLCD.print("Cebador",30,110);
 
-
+  aux = map(config.acelerador,70,120,0,5); 
   //Acelerador
-  sliderH(180,90,0);
+  sliderH(180,90,aux);
   myGLCD.setFont(SmallFont);
   myGLCD.setColor(55, 140 ,255);
   myGLCD.print("Acelerador",180,60);
 
-
+  aux = map(config.cuanto_acel,500,2500,0,5); 
   //Tiempo Acelerado..
-  sliderH(180,140,2);
+  sliderH(180,140,aux);
   myGLCD.setFont(SmallFont);
   myGLCD.setColor(55, 140 ,255);
   myGLCD.print("Tiempo Acelerado",180,110);
 
-
+  aux = map(config.cuanto_desacel,500,2500,0,5); 
   //Tiempo Desacelerado..
-  sliderH(180,190,2);
+  sliderH(180,190,aux);
   myGLCD.setFont(SmallFont);
   myGLCD.setColor(55, 140 ,255);
   myGLCD.print("Tiempo Desacelerado",180,150);
-
 
 }
 
@@ -2233,4 +2232,3 @@ void setupNaftaScreen()
   myGLCD.printNumI(baja_nafta,112,95,4,'0');
 
 }
-
