@@ -67,8 +67,8 @@
 
 struct config_t
 {
-  long m_totales_i;
-  long m_totales_f;
+  volatile long m_totales_i;
+  volatile long m_totales_f;
   int  acelerador;
   int  cuanto_acel;    
   int  cuanto_desacel;   
@@ -115,10 +115,6 @@ int timerMarcha;
 int timerEscucha;
 
 
-
-volatile long m_totales_f = 0;
-volatile long m_totales_i = 0;
-
 int acelerado = 750;
 int desacelerado = 1000;
 int cuanto = 80;
@@ -150,13 +146,13 @@ void printKmTotales()
   myGLCD.setColor(0, 255, 0);
 
 
-  aux_str = String(m_totales_f);
+  aux_str = String(config.m_totales_f);
   if (aux_str.length() > 2)
     aux_str = aux_str.substring(0,2);
 
   myGLCD.print(aux_str, 250,110);
   myGLCD.print(".", 237,110);
-  myGLCD.printNumI(m_totales_i,160,110,5,'0');
+  myGLCD.printNumI(config.m_totales_i,160,110,5,'0');
 
 }
 
@@ -521,9 +517,9 @@ Protocolo de comunicacion:
       if ( palabra == "KMTOT")
       {
         Serial.println(F("Km totales, parte entera:"));
-        Serial.println(m_totales_i);
+        Serial.println(config.m_totales_i);
         Serial.println(F("Km totales, parte decimal (5 digitos)"));
-        Serial.println(m_totales_f);
+        Serial.println(config.m_totales_f);
       }
       else if ( palabra == "START" )
       {
@@ -567,9 +563,9 @@ Protocolo de comunicacion:
         }
         char str[10];
         palabra.toCharArray(str,10);
-        m_totales_f = atol(str);
+        config.m_totales_f = atol(str);
         Serial.print("Km totales f seteado en :");
-        Serial.println(m_totales_f);
+        Serial.println(config.m_totales_f);
         palabra = "";
         Serial.println("Ingrese la parte entera: (5 digitos)");
         while ( Serial.available() < 5 ); //wait
@@ -580,9 +576,9 @@ Protocolo de comunicacion:
         }
         char str_aux[10];
         palabra.toCharArray(str_aux,10);
-        m_totales_i = atol(str_aux);
+        config.m_totales_i = atol(str_aux);
         Serial.print("Km totales i seteado en :");
-        Serial.println(m_totales_i,DEC);
+        Serial.println(config.m_totales_i,DEC);
       }
     }
     else
@@ -1088,11 +1084,11 @@ void contar()
   {
     ultima = ultima_aux;
     aux = millis(); //Remember when this pulse arrived...
-    m_totales_f = m_totales_f + 376; //Total traveled meters since last pulse
-    if ( m_totales_f >= 1000000 )
+    config.m_totales_f = config.m_totales_f + 376; //Total traveled meters since last pulse
+    if ( config.m_totales_f >= 1000000 )
     {
-      m_totales_i++;
-      m_totales_f = m_totales_f - 1000000;
+      config.m_totales_i++;
+      config.m_totales_f = config.m_totales_f - 1000000;
     }
   }
 }
@@ -1103,8 +1099,6 @@ void contar()
 
 void guardarOdometro()
 {
-  config.m_totales_f = m_totales_f;
-  config.m_totales_i = m_totales_i;
   EEPROM_writeAnything(0, config);
 }
 
@@ -1262,13 +1256,13 @@ void odometro(int x, int y)
   String aux_str;
   int aux_mts = 0;
 
-  aux_mts = m_totales_f / 10000;
+  aux_mts = config.m_totales_f / 10000;
 
   myGLCD.setFont(BigFont);
   myGLCD.setColor(100,100,255);
   myGLCD.printNumI(aux_mts, x+95,y,2,'0');
   myGLCD.print(".", (x+80),y);
-  myGLCD.printNumI(m_totales_i,x,y,5,'0');
+  myGLCD.printNumI(config.m_totales_i,x,y,5,'0');
 }
 
 
